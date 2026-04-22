@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
   computersatisi-app:
+    build: .
     image: sabir-kral/computersatisi:latest
     container_name: computersatisi-backend
     restart: always
@@ -12,4 +13,4 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: development
     volumes:
-      - /home/root123/ComputerSatisi/files:/app/files
+      - /home/root123/ComputerSatisi2/files:/app/files
