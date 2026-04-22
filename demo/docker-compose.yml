@@ -8,7 +8,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - /home/root123/files/backend/.env
+      .env
     environment:
       SPRING_PROFILES_ACTIVE: development
     volumes:
