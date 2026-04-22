@@ -3,7 +3,6 @@ version: "3.8"
 services:
   computersatisi-app:
     build: .
-    image: sabir-kral/computersatisi:latest
     container_name: computersatisi-backend
     restart: always
     ports:
