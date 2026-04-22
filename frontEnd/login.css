@@ -1,0 +1,59 @@
+:root {
+    --bg-dark: #0d1117;
+    --primary-blue: #58a6ff;
+    --card-bg: #161b22;
+}
+
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--bg-dark);
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+}
+
+.auth-container {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 350px;
+}
+
+h2 { color: var(--primary-blue); margin-bottom: 10px; text-align: center; }
+p { color: #8b949e; text-align: center; margin-bottom: 25px; font-size: 0.9rem; }
+
+.input-group { margin-bottom: 20px; }
+
+input {
+    width: 100%;
+    padding: 12px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: white;
+    box-sizing: border-box;
+}
+
+input:focus { border-color: var(--primary-blue); outline: none; }
+
+.btn-auth {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary-blue);
+    border: none;
+    border-radius: 6px;
+    color: #0d1117;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-auth:hover { opacity: 0.9; transform: scale(1.02); }
+
+.auth-footer { margin-top: 20px; text-align: center; font-size: 0.85rem; color: #8b949e; }
+.auth-footer a { color: var(--primary-blue); text-decoration: none; }

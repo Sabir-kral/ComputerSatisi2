@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <title>Kompüter Əlavə Et</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container" style="max-width: 500px; margin: 100px auto;">
+        <div class="card">
+            <h2>Yeni Kompüter Elanı</h2>
+            <input type="text" id="pc-name" placeholder="Kompüterin Adı (Məs: Dell XPS)"><br><br>
+            <input type="number" id="pc-price" placeholder="Qiymət (AZN)"><br><br>
+            <textarea id="pc-desc" placeholder="Təsvir"></textarea><br><br>
+            <button class="btn-blue" onclick="savePC()">Paylaş</button>
+            <button class="btn-danger" onclick="history.back()">Geri</button>
+        </div>
+    </div>
+
+    <script>
+        async function savePC() {
+            const data = {
+                name: document.getElementById('pc-name').value,
+                price: document.getElementById('pc-price').value,
+                description: document.getElementById('pc-desc').value
+            };
+
+            const response = await fetch('http://localhost:8080/api/computers/add', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if(response.ok) {
+                alert("Uğurla əlavə edildi!");
+                location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>

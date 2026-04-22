@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hesabın Təsdiqlənməsi | TechStore</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="auth-container">
+        <form class="auth-form" id="verify-form">
+            <h2>Emaili Təsdiqlə</h2>
+            <p>Emailinizə göndərilən 6 rəqəmli kodu daxil edin</p>
+            
+            <div class="input-group">
+                <input type="text" id="otp-code" placeholder="6 rəqəmli kod" maxlength="6" required>
+            </div>
+            
+            <button type="submit" class="btn-auth" onclick="verify()">Təsdiqlə</button>
+            
+            <div class="auth-footer">
+                Kod gəlmədi? <a href="javascript:void(0)" onclick="resendOTP()">Yenidən göndər</a>
+            </div>
+        </form>
+    </div>
+    <script src="verify.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <title>Profilim | TechStore</title>
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+    <div class="container">
+    <div class="card">
+        <div id="profile-view">
+            <h2>İstifadəçi Profili</h2>
+            <div class="user-info">
+                <p><strong>Ad:</strong> <span id="view-name">...</span></p>
+                <p><strong>Soyad:</strong> <span id="view-surname">...</span></p>
+                <p><strong>Email:</strong> <span id="view-email">...</span></p>
+            </div>
+            
+<div class="button-group">
+    <button class="btn-blue" onclick="showUpdate()">Məlumatları Yenilə</button>
+    <button class="btn-blue" style="background:#8957e5" onclick="getMyComputers()">Mənim Kompüterlərim</button>
+    <button class="btn-blue" style="background:#49fb35; color:#000" onclick="location.href='add-computer.html'">Kompüter Əlavə Et +</button>
+    <button class="btn-danger" onclick="logout()">Çıxış Et</button>
+    <button class="btn-danger btn-delete" onclick="deleteAccount()">Hesabı Həmişəlik Sil</button>
+</div>
+        </div>
+
+        <div id="my-computers-area" class="computers-list-container" style="display:none;">
+            <h3 class="section-title">Mənim Kompüterlərim</h3>
+            <div id="pc-list-content">
+                </div>
+        </div>
+
+        <div id="update-form" style="display:none;">
+            <h3>Məlumatları Redaktə Et</h3>
+            <input type="text" id="up-name" class="input-field" placeholder="Ad">
+            <input type="text" id="up-surname" class="input-field" placeholder="Soyad">
+            <input type="password" id="up-pass" class="input-field" placeholder="Yeni Şifrə">
+            <button class="btn-blue" onclick="processUpdate()">Yadda Saxla</button>
+            <button class="btn-danger" onclick="location.reload()">Ləğv Et</button>
+        </div>
+    </div>
+</div>
+    <script src="profile.js"></script>
+</body>
+</html>

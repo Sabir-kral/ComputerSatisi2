@@ -1,0 +1,190 @@
+:root {
+    --blue: #58a6ff;
+    --red: #da3633;
+    --bg: #0d1117;
+    --card: #161b22;
+    --text: #c9d1d9;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+h2, h3 { color: white; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+
+.btn-blue, .btn-danger {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.btn-blue { background: var(--blue); }
+.btn-blue:hover { opacity: 0.8; }
+.btn-danger { background: var(--red); }
+.btn-danger:hover { background: #b62320; }
+
+.input-field {
+    width: 95%;
+    padding: 10px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: white;
+    border-radius: 6px;
+}
+
+/* Satdığım Kompüterlər Bölməsi */
+.my-computers-section {
+    margin-top: 30px;
+    border-top: 2px solid #30363d;
+    padding-top: 20px;
+}
+
+.pc-item {
+    background: #21262d;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--blue);
+}
+
+.pc-item h4 { margin: 0; color: var(--blue); }
+.pc-item p { margin: 5px 0; font-size: 0.9rem; }
+
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.computers-list-container {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #30363d;
+}
+
+.section-title {
+    color: var(--blue);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+/* Kompüter kartı stili */
+.pc-list-item {
+    background: #21262d;
+    border: 1px solid #30363d;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    transition: 0.3s;
+}
+
+.pc-list-item:hover {
+    border-color: var(--blue);
+    background: #262c36;
+}
+
+.pc-list-item h4 {
+    margin: 0 0 10px 0;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.pc-list-item p {
+    margin: 5px 0;
+    font-size: 0.95rem;
+    color: #8b949e;
+}
+
+.pc-price {
+    color: var(--blue);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+:root {
+    --blue: #58a6ff;
+    --red: #da3633;
+    --bg: #0d1117;
+    --card: #161b22;
+    --text: #c9d1d9;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding-top: 50px;
+}
+
+/* Əsas Div - Normal Ölçü */
+.container {
+    width: 100%;
+    max-width: 800px; /* Div-in enini məhdudlaşdırdıq */
+    padding: 20px;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Butonların yan-yana düzülməsi */
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Butonlar 2 sütun olacaq */
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.btn-blue, .btn-danger {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+    transition: 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-blue:hover, .btn-danger:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+}
+
+/* Hesabı Sil butonu üçün xüsusi stil */
+.btn-delete {
+    grid-column: span 2; /* Bu buton bütün eni tutsun */
+    background: #444;
+    margin-top: 10px;
+}
+
+.pc-item {
+    background: #21262d;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 15px;
+    border-left: 5px solid var(--blue);
+}

@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  computersatisi-app:
+    image: sabir-kral/computersatisi:latest
+    container_name: computersatisi-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - /home/root123/files/backend/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: development
+    volumes:
+      - /home/root123/ComputerSatisi/files:/app/files

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore | Squishy Pro</title>
+    <style>
+        :root {
+            --blue: #58a6ff;
+            --bg: #0d1117;
+            --card: #161b22;
+            --text: #c9d1d9;
+        }
+
+        body {
+            margin: 0; background: var(--bg); color: var(--text);
+            font-family: 'Segoe UI', sans-serif; overflow-x: hidden;
+        }
+
+        /* HEADER DÜZƏLİŞİ */
+        .main-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5%; background: #010409; border-bottom: 1px solid #30363d;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { font-size: 24px; font-weight: 800; color: white; cursor: pointer; }
+        .logo span { color: var(--blue); }
+
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+
+        /* GİRİŞ BUTONU */
+        .btn-login {
+            background: var(--blue); color: white; text-decoration: none;
+            padding: 8px 20px; border-radius: 6px; font-weight: 600; transition: 0.3s;
+        }
+        .btn-login:hover { opacity: 0.8; }
+
+        /* USER LOGO (GİRİŞ EDƏNDƏN SONRA) */
+        .user-section { display: none; align-items: center; gap: 12px; cursor: pointer; }
+        .user-gmail { color: var(--text); font-size: 0.9rem; }
+        .user-avatar {
+            width: 35px; height: 35px; background: var(--blue);
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; font-weight: bold;
+            border: 2px solid #30363d;
+        }
+
+        .hidden { display: none !important; }
+
+        /* GRID SİSTEMİ */
+        .grid-container {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px; padding: 50px 5%;
+        }
+        .pc-card {
+            background: var(--card); border: 1px solid #30363d;
+            border-radius: 15px; padding: 25px; cursor: pointer; transition: 0.3s;
+        }
+        .pc-card:hover { border-color: var(--blue); transform: translateY(-5px); }
+
+        /* DETAL OVERLAY */
+        .detail-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--bg); display: none; z-index: 10000; overflow: hidden;
+        }
+        .detail-overlay.active { display: flex !important; justify-content: center; align-items: center; }
+
+        /* LAYOUT: SOLDADA ŞƏKİL, SAĞDADA MƏTN */
+        .detail-content {
+            display: flex !important; flex-direction: row !important;
+            width: 90%; max-width: 1200px; gap: 60px; z-index: 50;
+            align-items: center; justify-content: center;
+        }
+
+        .left-side { flex: 1; text-align: center; }
+        .detail-img { 
+            width: 100%; max-width: 450px; border-radius: 20px; 
+            border: 4px solid var(--blue); box-shadow: 0 0 40px rgba(88, 166, 255, 0.2);
+        }
+        .detail-name { font-size: 3rem; color: white; margin-top: 20px; text-transform: uppercase; }
+
+        .right-side { 
+            flex: 1.5; background: rgba(255, 255, 255, 0.03); 
+            padding: 40px; border-radius: 25px; border-left: 8px solid var(--blue);
+        }
+        .detail-desc { font-size: 1.2rem; line-height: 1.7; color: var(--text); }
+        .detail-price { font-size: 2.5rem; color: var(--blue); font-weight: bold; margin-top: 15px; }
+
+        /* SQUISHY BALLS */
+        .jelly-ball {
+            position: absolute;
+            background: radial-gradient(circle, rgba(88, 166, 255, 0.15), transparent 70%);
+            border-radius: 50%; z-index: 1;
+            animation: bounce 10s infinite linear, squish 10s infinite linear;
+        }
+
+        @keyframes bounce {
+            0%, 100% { left: 0%; top: 20%; }
+            25% { left: 80%; top: 80%; }
+            50% { left: 50%; top: 0%; }
+            75% { left: 0%; top: 70%; }
+        }
+
+        @keyframes squish {
+            0%, 100% { transform: scaleX(1.4) scaleY(0.7); }
+            15%, 45%, 75% { transform: scale(1); }
+            25%, 85% { transform: scaleX(0.7) scaleY(1.4); }
+        }
+
+        .back-btn {
+            background: var(--blue); border: none; color: white;
+            padding: 12px 30px; border-radius: 50px; cursor: pointer;
+            font-weight: bold; margin-top: 20px;
+        }
+        .user-section { 
+    display: none; /* Başlanğıcda gizli */
+    align-items: center; 
+    gap: 12px; 
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+.user-section:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+nothing{
+    font-size: 20vw;
+    
+}
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo" onclick="location.reload()">TECH<span>STORE</span></div>
+        
+        <div class="nav-right">
+            <a href="login.html" id="loginBtn" class="btn-login">Giriş</a>
+            
+            <div id="userSection" class="user-section" onclick="window.location.href='profile.html'">
+                <span id="userGmail" class="user-gmail"></span>
+                <div id="userAvatar" class="user-avatar"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="computer-container" class="grid-container"></div>
+    </main>
+
+    <div id="detailOverlay" class="detail-overlay">
+        <div id="detailContent" class="detail-content"></div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:8080/api";
+
+       function checkAuth() {
+    // Hansı adla saxladığından asılı olmayaraq yoxlayırıq
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const email = localStorage.getItem("email") || localStorage.getItem("userEmail");
+    
+    const loginBtn = document.getElementById("loginBtn");
+    const userSection = document.getElementById("userSection");
+    const userGmail = document.getElementById("userGmail");
+    const userAvatar = document.getElementById("userAvatar");
+
+    // Debug üçün konsola baxaq (yoxladıqdan sonra silə bilərsən)
+    console.log("Token:", token);
+    console.log("Email:", email);
+
+    if (token && email) {
+        // Əgər giriş edilibsə
+        loginBtn.style.display = "none"; // Giriş butonunu gizlət
+        userSection.style.display = "flex"; // User bölməsini göstər
+        userSection.classList.remove("hidden"); // Hər ehtimala qarşı
+        
+        userGmail.innerText = email;
+        userAvatar.innerText = email.charAt(0).toUpperCase();
+    } else {
+        // Giriş edilməyibsə
+        loginBtn.style.display = "block";
+        userSection.style.display = "none";
+    }
+}
+
+        async function loadComputers() {
+            try {
+                const res = await fetch(`${API_BASE}/customers/v2`);
+                const data = await res.json();
+                const container = document.getElementById("computer-container");
+                container.innerHTML = data.map(pc => `
+                    <div class="pc-card" onclick="openDetails(${pc.id})">
+                        <h2>${pc.name}</h2>
+                        <p style="color:#58a6ff; font-weight:bold">${pc.price} AZN</p>
+                    </div>
+                `).join('');
+                if (container.innerHTML = ``){
+                    const nothing = "THERE IS NO COMPUTERS RIGHT NOW!"
+                    document.append(nothing);
+                }
+            } catch (err) { console.log("Backend offline"); }
+        }
+
+       // Detalları açanda "İndi Al" butonu çıxacaq
+async function openDetails(id) {
+    const overlay = document.getElementById("detailOverlay");
+    const content = document.getElementById("detailContent");
+    
+    overlay.classList.add("active");
+    content.innerHTML = "<h1 style='color:white'>Yüklənir...</h1>";
+
+    try {
+        const res = await fetch(`${API_BASE}/computers/${id}`);
+        const pc = await res.json();
+        const img = pc.imageLinks?.[0] || 'https://via.placeholder.com/450';
+
+        // BURADA BUTON ƏLAVƏ EDİLDİ
+        content.innerHTML = `
+            <div class="left-side">
+                <img src="${img}" class="detail-img">
+                <h1 class="detail-name">${pc.name}</h1>
+            </div>
+            <div class="right-side">
+                <div class="detail-desc">${pc.description}</div>
+                <div class="detail-price">${pc.price} AZN</div>
+                
+                <div style="display:flex; gap:15px; margin-top:25px;">
+                    <button class="back-btn" onclick="closeDetails()">← GERİ</button>
+                    <button class="back-btn" style="background:#49fb35; color:#000;" onclick="buyComputer(${pc.id})">İNDİ AL</button>
+                </div>
+            </div>
+        `;
+        createBalls();
+    } catch (e) { 
+        closeDetails(); 
+    }
+}
+
+// ALIŞ-VERİŞ METODU
+async function buyComputer(computerId) {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    
+    if (!token) {
+        alert("Kompüter almaq üçün giriş etməlisiniz!");
+        window.location.href = "login.html";
+        return;
+    }
+
+    try {
+        // Sənin istədiyin endpoint: /api/customers/buy/{computerId}
+        const res = await fetch(`http://localhost:8080/api/customers/buy/${computerId}`, {
+            method: 'POST', // Backend adətən POST gözləyir, əgər GET-dirsə 'GET' yaz
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (res.ok) {
+            alert("Təbriklər! Alış uğurla tamamlandı.");
+            closeDetails();
+        } else {
+            const errorData = await res.json();
+            alert("Xəta: " + (errorData.message || "Alış baş tutmadı. Balansınızı yoxlayın."));
+        }
+    } catch (err) {
+        alert("Serverlə bağlantı kəsildi!");
+    }
+}
+        function createBalls() {
+            const overlay = document.getElementById("detailOverlay");
+            document.querySelectorAll(".jelly-ball").forEach(b => b.remove());
+            for (let i = 0; i < 6; i++) {
+                const ball = document.createElement("div");
+                ball.className = "jelly-ball";
+                const size = Math.random() * 80 + 100 + "px";
+                ball.style.width = ball.style.height = size;
+                ball.style.animationDuration = (Math.random() * 4 + 8) + "s";
+                overlay.appendChild(ball);
+            }
+        }
+
+        function closeDetails() { document.getElementById("detailOverlay").classList.remove("active"); }
+
+        window.onload = () => {
+            checkAuth();
+            loadComputers();
+        };
+    </script>
+</body>
+</html>

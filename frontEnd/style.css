@@ -1,0 +1,94 @@
+/* Ümumi Konteyner */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 40px 5%;
+}
+
+/* DETAL PƏNCƏRƏSİ (Overlay) */
+.detail-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: #0d1117;
+    display: none; /* JS ilə 'flex' olacaq */
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    overflow: hidden;
+}
+
+.detail-overlay.active {
+    display: flex !important;
+}
+
+/* SƏNİN İSTƏDİYİN O LAYOUT (Sol-Sağ) */
+.detail-content {
+    display: flex !important;
+    flex-direction: row !important; /* Mütləq yan-yana */
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    max-width: 1100px;
+    gap: 60px;
+    z-index: 20; /* Topların üstündə dursun */
+    color: white;
+}
+
+.left-side {
+    flex: 1;
+    text-align: center;
+}
+
+.detail-img {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 20px;
+    border: 3px solid #58a6ff;
+    box-shadow: 0 0 30px rgba(88, 166, 255, 0.3);
+}
+
+.detail-name {
+    font-size: 2.5rem;
+    margin-top: 20px;
+    color: #58a6ff;
+    text-transform: uppercase;
+}
+
+.right-side {
+    flex: 1.2;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 40px;
+    border-radius: 20px;
+    border-left: 6px solid #58a6ff;
+}
+
+.detail-desc {
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: #c9d1d9;
+}
+
+/* SQUISHY (ƏZİLƏN) TOPLAR */
+.jelly-ball {
+    position: absolute;
+    background: radial-gradient(circle, rgba(88, 166, 255, 0.25), transparent 70%);
+    border-radius: 50%;
+    z-index: 1;
+    animation: bounce 12s infinite linear, squish 12s infinite linear;
+}
+
+@keyframes bounce {
+    0%, 100% { left: 5%; top: 10%; }
+    25% { left: 85%; top: 75%; }
+    50% { left: 45%; top: 5%; }
+    75% { left: 5%; top: 80%; }
+}
+
+@keyframes squish {
+    0%, 100% { transform: scaleX(1.5) scaleY(0.6); } /* Divarda əzilmə */
+    15%, 40%, 65%, 90% { transform: scale(1); }    /* Havada normal */
+    25%, 75% { transform: scaleX(0.6) scaleY(1.5); } /* Yan divarda əzilmə */
+    50% { transform: scaleX(1.5) scaleY(0.7); }    /* Üstdə əzilmə */
+}
