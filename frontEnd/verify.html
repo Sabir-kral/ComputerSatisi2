@@ -8,20 +8,22 @@
 </head>
 <body>
     <div class="auth-container">
-        <form class="auth-form" id="verify-form">
+        <div class="auth-form">
             <h2>Emaili Təsdiqlə</h2>
             <p>Emailinizə göndərilən 6 rəqəmli kodu daxil edin</p>
             
             <div class="input-group">
                 <input type="text" id="otp-code" placeholder="6 rəqəmli kod" maxlength="6" required>
             </div>
+
+            <div id="result" style="margin-bottom: 10px; font-weight: bold;"></div>
             
-            <button type="submit" class="btn-auth" onclick="verify()">Təsdiqlə</button>
+            <button type="button" class="btn-auth" onclick="verify()">Təsdiqlə</button>
             
             <div class="auth-footer">
                 Kod gəlmədi? <a href="javascript:void(0)" onclick="resendOTP()">Yenidən göndər</a>
             </div>
-        </form>
+        </div>
     </div>
     <script src="verify.js"></script>
 </body>
