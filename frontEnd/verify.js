@@ -1,7 +1,14 @@
 async function verify() {
     const email = localStorage.getItem("pendingEmail");
-    const code = document.getElementById("otp-code").value;
     const result = document.getElementById("result");
+    const codeInput = document.getElementById("otp-code");
+
+    if (!codeInput) {
+        console.error("otp-code inputu tapılmadı");
+        return;
+    }
+
+    const code = codeInput.value.trim();
 
     if (!email) {
         alert("Email tapılmadı, yenidən qeydiyyatdan keçin.");
@@ -19,7 +26,7 @@ async function verify() {
         const response = await fetch("http://localhost:8080/api/users/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, code })
+            body: JSON.stringify({ email: email, code: code })
         });
 
         const data = await response.json();
@@ -41,7 +48,7 @@ async function verify() {
 }
 
 async function resendOTP() {
-    const email = localStorage.getItem('pendingEmail');
+    const email = localStorage.getItem("pendingEmail");
     const result = document.getElementById("result");
 
     if (!email) {
@@ -51,10 +58,10 @@ async function resendOTP() {
     }
 
     try {
-        const response = await fetch('http://localhost:8080/api/users/resendOTP', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
+        const response = await fetch("http://localhost:8080/api/users/resendOTP", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email })
         });
 
         if (response.ok) {
