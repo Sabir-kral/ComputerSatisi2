@@ -8,20 +8,26 @@ async function verify() {
         return;
     }
 
-
     if (!email) {
         alert("Email tapılmadı, yenidən qeydiyyatdan keçin.");
         window.location.href = "register.html";
         return;
     }
 
+    const code = codeInput.value.trim();
+
+    if (!code || code.length !== 6) {
+        result.style.color = "#f87171";
+        result.innerText = "Zəhmət olmasa 6 rəqəmli kodu daxil edin.";
+        return;
+    }
 
     try {
-
         const request = {
-            "email":email.value,
-            "code":codeInput.value
-        }
+            "email": email,      // email is already a string, NO .value
+            "code": code
+        };
+
         const response = await fetch("http://localhost:8080/api/users/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
