@@ -8,7 +8,6 @@ async function verify() {
         return;
     }
 
-    const code = codeInput.value.trim();
 
     if (!email) {
         alert("Email tapılmadı, yenidən qeydiyyatdan keçin.");
@@ -23,10 +22,15 @@ async function verify() {
     }
 
     try {
+
+        const request = {
+            "email":email.value,
+            "code":codeInput.value
+        }
         const response = await fetch("http://localhost:8080/api/users/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email, code: code })
+            body: JSON.stringify(request)
         });
 
         const data = await response.json();
