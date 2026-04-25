@@ -12,19 +12,19 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
             body: JSON.stringify({ name, email, password })
         });
 
-        // JSON-u yalnız bir dəfə oxuyuruq
         const data = await response.json();
 
         if (response.ok) {
+            // YALNIZ bura düşəndə uğurlu sayılır
             alert("Qeydiyyat uğurludur! Gmailinizə gələn kodu daxil edin.");
             localStorage.setItem("pendingEmail", email);
             window.location.href = "verify.html";
         } else {
-            // Artıq oxunmuş 'data' obyektini istifadə edirik
+            // Backend-dən gələn real xəta mesajını göstəririk
             alert("Xəta: " + (data.message || "Bu email artıq istifadə olunub!"));
         }
     } catch (err) {
         console.error("Qeydiyyat xətası:", err);
-        alert("Server xətası baş verdi!");
+        alert("Serverə qoşulmaq mümkün olmadı!");
     }
 });

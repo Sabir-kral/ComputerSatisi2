@@ -48,7 +48,11 @@ public class SecurityConfig {
                         // ANA SƏHİFƏ ÜÇÜN BU İKİ SƏTRİ ƏLAVƏ ET:
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
-
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll() // Bu sətirlər hər kəsə icazə verir
                         .requestMatchers(HttpMethod.PUT, "/api/customers/profile").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/customers/delete").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/customers/profile").authenticated()
@@ -69,11 +73,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Həm localhost, həm də CloudShell üçün icazə veririk
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "https://*.cloudshell.dev"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(Arrays.asList("*")); // Və ya "http://10.0.2.15:3000"
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // DELETE mütləq olmalıdır
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

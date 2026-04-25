@@ -12,18 +12,24 @@ services:
       - "3306:3306"
     networks:
       - computersatisi-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   computersatisi-app:
     build: .
     container_name: computersatisi-backend
-    restart: on-failure # Həmişə yox, xəta alanda yenidən başlasın
+    restart: on-failure
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - .env
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       EMAIL: ${EMAIL}
@@ -32,6 +38,20 @@ services:
       - "8080:8080"
     networks:
       - computersatisi-net
+
+  computersatisi-frontend:
+    build: /home/root123/ComputerSatisi2/frontEnd
+    container_name: computersatisi-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    depends_on:
+      - computersatisi-app
+    networks:
+      - computersatisi-net
+    environment:
+      - REACT_APP_API_URL=http://10.0.2.15:8080
+      - NEXT_PUBLIC_API_URL=http://10.0.2.15:8080
 
 networks:
   computersatisi-net:
