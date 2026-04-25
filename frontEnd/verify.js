@@ -15,11 +15,6 @@ async function verify() {
         return;
     }
 
-    if (!code || code.length !== 6) {
-        result.style.color = "#f87171";
-        result.innerText = "Zəhmət olmasa 6 rəqəmli kodu daxil edin.";
-        return;
-    }
 
     try {
 
