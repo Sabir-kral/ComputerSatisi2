@@ -12,19 +12,25 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
             body: JSON.stringify({ name, email, password })
         });
 
+        // 1. Əvvəlcə cavabı JSON-a çeviririk
         const data = await response.json();
 
+        // 2. STATUS CHECK: Yalnız 200-299 arası uğurlu sayılır
         if (response.ok) {
-            // YALNIZ bura düşəndə uğurlu sayılır
             alert("Qeydiyyat uğurludur! Gmailinizə gələn kodu daxil edin.");
             localStorage.setItem("pendingEmail", email);
             window.location.href = "verify.html";
-        } else {
-            // Backend-dən gələn real xəta mesajını göstəririk
-            alert("Xəta: " + (data.message || "Bu email artıq istifadə olunub!"));
+        } 
+        // 3. Əgər 400 və ya digər xətalar gəlibsə
+        else {
+            // Backend-dən gələn mesajı (məs: "Email already exists") göstər
+            alert("Xəta: " + (data.message || "Bu məlumatlarla qeydiyyat mümkün olmadı!"));
+            // Burada kodun icrasını dayandırırıq, yönləndirmə baş vermir
         }
+
     } catch (err) {
-        console.error("Qeydiyyat xətası:", err);
+        // Bu hissə ancaq internet kəsilsə və ya server sönülü olsa işləyir
+        console.error("Şəbəkə xətası:", err);
         alert("Serverə qoşulmaq mümkün olmadı!");
     }
 });
