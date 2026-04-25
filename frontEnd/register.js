@@ -2,7 +2,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     e.preventDefault();
     
     const name = document.getElementById('name').value;
-    const surname = document.getElementById('surname').value; // add surname field to your HTML if missing
+const surname = document.getElementById('surname').value;
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
 
