@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TechStore | Squishy Pro</title>
+    <title>TechStore</title>
     <style>
         :root {
             --blue: #58a6ff;
@@ -185,38 +185,43 @@ nothing{
     }
 }
 
-        async function loadComputers() {
-            try {
-                const res = await fetch(`${API_BASE}/customers/v2`);
-                const data = await res.json();
-                const container = document.getElementById("computer-container");
-                container.innerHTML = data.map(pc => `
-                    <div class="pc-card" onclick="openDetails(${pc.id})">
-                        <h2>${pc.name}</h2>
-                        <p style="color:#58a6ff; font-weight:bold">${pc.price} AZN</p>
-                    </div>
-                `).join('');
-                if (container.innerHTML = ``){
-                    const nothing = "THERE IS NO COMPUTERS RIGHT NOW!"
-                    document.append(nothing);
-                }
-            } catch (err) { console.log("Backend offline"); }
+      async function loadComputers() {
+    try {
+        const res = await fetch(`${API_BASE}/customers/v2`);
+        const data = await res.json();
+        const container = document.getElementById("computer-container");
+
+        if (!data || data.length === 0) {
+            container.innerHTML = "<p style='text-align:center; color:#8b949e; font-size:1.5rem; margin-top:50px;'>Hal-hazırda heç bir kompüter yoxdur.</p>";
+            return;
         }
 
-       // Detalları açanda "İndi Al" butonu çıxacaq
+        container.innerHTML = data.map(pc => `
+            <div class="pc-card" onclick="openDetails(${pc.id})">
+                <h2>${pc.name}</h2>
+                <p style="color:#58a6ff; font-weight:bold">${pc.price} AZN</p>
+            </div>
+        `).join('');
+    } catch (err) { 
+        console.log("Backend offline:", err); 
+    }
+}
+
 async function openDetails(id) {
     const overlay = document.getElementById("detailOverlay");
     const content = document.getElementById("detailContent");
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
     
     overlay.classList.add("active");
     content.innerHTML = "<h1 style='color:white'>Yüklənir...</h1>";
 
     try {
-        const res = await fetch(`${API_BASE}/computers/${id}`);
+        const res = await fetch(`${API_BASE}/computers/${id}`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
         const pc = await res.json();
         const img = pc.imageLinks?.[0] || 'https://via.placeholder.com/450';
 
-        // BURADA BUTON ƏLAVƏ EDİLDİ
         content.innerHTML = `
             <div class="left-side">
                 <img src="${img}" class="detail-img">
@@ -225,7 +230,6 @@ async function openDetails(id) {
             <div class="right-side">
                 <div class="detail-desc">${pc.description}</div>
                 <div class="detail-price">${pc.price} AZN</div>
-                
                 <div style="display:flex; gap:15px; margin-top:25px;">
                     <button class="back-btn" onclick="closeDetails()">← GERİ</button>
                     <button class="back-btn" style="background:#49fb35; color:#000;" onclick="buyComputer(${pc.id})">İNDİ AL</button>

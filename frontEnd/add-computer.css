@@ -1,0 +1,85 @@
+:root {
+    --bg-dark: #0d1117;
+    --primary-blue: #58a6ff;
+    --card-bg: #161b22;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--bg-dark);
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+}
+
+.card {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 400px;
+}
+
+h2 {
+    color: var(--primary-blue);
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: white;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+}
+
+textarea {
+    height: 120px;
+    resize: vertical;
+}
+
+input:focus, textarea:focus {
+    border-color: var(--primary-blue);
+    outline: none;
+}
+
+.btn-blue {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary-blue);
+    border: none;
+    border-radius: 6px;
+    color: #0d1117;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-bottom: 10px;
+}
+
+.btn-blue:hover { opacity: 0.9; transform: scale(1.02); }
+
+.btn-danger {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid #f87171;
+    border-radius: 6px;
+    color: #f87171;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-danger:hover { background: #f87171; color: #0d1117; }
