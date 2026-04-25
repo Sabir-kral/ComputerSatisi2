@@ -1,9 +1,7 @@
-// Əgər formun içindədirsə, 'e' parametrini ötür:
 async function verify(e) {
-    if (e) e.preventDefault(); // Səhifənin refresh olmasını dayandırır
+    if (e) e.preventDefault();
 
-    // Register-də 'pendingEmail' olaraq yadda saxlamışdıq, bura düzəliş etdik:
-    const email = window.localStorage.getItem("pendingEmail");
+    const email = localStorage.getItem("pendingEmail");
     const code = document.getElementById("code").value;
 
     if (!email) {
@@ -12,28 +10,21 @@ async function verify(e) {
         return;
     }
 
-    const request = {
-        "email": email,
-        "code": code
-    };
-
     try {
-        // PORTU 8080 ETDİK (Backend-ə müraciət üçün)
         const response = await fetch("http://localhost:8080/api/users/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(request)
+            body: JSON.stringify({ email, code })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            window.localStorage.removeItem("pendingEmail");
-            window.localStorage.setItem("accessToken", data.accessToken);
-            document.getElementById("result").innerText = "Xoş gəldiniz";
+            localStorage.removeItem("pendingEmail");
+            document.getElementById("result").innerText = "Email təsdiqləndi! Giriş səhifəsinə yönləndirilirsiniz...";
             document.getElementById("result").style.color = "green";
-            // Bir az gözləyib sonra yönləndirmək daha yaxşıdır
-            setTimeout(() => { window.location.href = "index.html"; }, 1000);
+            // Verify returns MessageResponse, NOT a token — redirect to login
+            setTimeout(() => { window.location.href = "login.html"; }, 1500);
         } else {
             document.getElementById("result").style.color = "#f87171";
             document.getElementById("result").innerText = data.message || "Kod yanlışdır";
@@ -43,6 +34,7 @@ async function verify(e) {
         alert("Bağlantı xətası!");
     }
 }
+
 async function resendOTP() {
     const email = localStorage.getItem('pendingEmail');
     
@@ -53,11 +45,10 @@ async function resendOTP() {
     }
 
     try {
-        const response = await fetch('http://localhost:8080/api/users/resendOtp', {
+        const response = await fetch('http://localhost:8080/api/users/resendOTP', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // Backend ResendOtpRequest gözləyir: { "email": "..." }
-            body: JSON.stringify({ email: email }) 
+            body: JSON.stringify({ email })
         });
 
         if (response.ok) {

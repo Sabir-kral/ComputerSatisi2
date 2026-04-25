@@ -36,8 +36,9 @@ public class CustomerService {
     private final ComputerRepo computerRepo;
     private final LogService logService;
 
+    @Transactional
     public MessageResponse register(CustomerRequest request) throws MessagingException {
-        userService.isUserExists(request.getEmail());
+        userService.isUserExists(request.getEmail()); // now safely deletes old unverified
 
         UserEntity user = new UserEntity();
         user.setEmail(request.getEmail());
@@ -70,7 +71,7 @@ public class CustomerService {
         MessageResponse response = new MessageResponse();
         response.setMessage("Customer registered successfully");
         response.setIsVerified(false);
-        logService.add("Customer registered with email: "+customer.getEmail(),"CUSTOMER_REGISTERED");
+        logService.add("Customer registered with email: " + customer.getEmail(), "CUSTOMER_REGISTERED");
 
         return response;
     }

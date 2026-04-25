@@ -15,9 +15,9 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
         if (response.ok) {
             localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('userEmail', data.email);
+            localStorage.setItem('userEmail', email);
             alert("Giriş uğurludur!");
-            window.location.href = "index.html"; // Ana səhifəyə yönləndir
+            window.location.href = "index.html";
         } else {
             alert("Xəta: " + (data.message || "Email və ya şifrə yanlışdır!"));
         }

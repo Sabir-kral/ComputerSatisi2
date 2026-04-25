@@ -17,10 +17,16 @@ import java.util.List;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepo userRepository;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        // Block login if not verified
+        if (!Boolean.TRUE.equals(user.getIsVerified())) {
+            throw new UsernameNotFoundException("Email təsdiqlənməyib. Zəhmət olmasa emailinizi yoxlayın.");
+        }
 
         List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))

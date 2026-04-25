@@ -46,7 +46,7 @@ async function openDetails(id) {
     overlay.classList.add("active");
     content.innerHTML = "<h1 style='color:white'>Yüklənir...</h1>";
 
-    const res = await fetch(`http://localhost:8080/api/users/computers/${id}`);
+    const res = await fetch(`http://localhost:8080/api/computers/${id}`);
     const pc = await res.json();
     const mainImg = pc.imageLinks && pc.imageLinks.length > 0 ? pc.imageLinks[0] : 'https://via.placeholder.com/400';
 
