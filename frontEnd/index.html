@@ -218,8 +218,8 @@
         async function loadComputers() {
             try {
                 const res = await fetch(`${API_BASE}/customers/v2`,{
-                    'ngrok-skip-browser-warning': 'true'
-                });
+                    headers:{'ngrok-skip-browser-warning': 'true'}
+                                });
                 const data = await res.json();
                 const container = document.getElementById("computer-container");
 
@@ -253,9 +253,9 @@
 
     try {
         const res = await fetch(`${API_BASE}/computers/${id}`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-            'ngrok-skip-browser-warning': 'true'
-        });
+            headers: token ? { 'Authorization': `Bearer ${token}` ,
+                'ngrok-skip-browser-warning': 'true'
+            } : {},        });
         const pc = await res.json();
         const images = pc.imageLinks && pc.imageLinks.length > 0
             ? pc.imageLinks
@@ -416,10 +416,10 @@ function closeDetails() {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
                     },
-                    'ngrok-skip-browser-warning': 'true'
-                });
+                                });
 
                 if (res.ok) {
                     alert("Təbriklər! Alış uğurla tamamlandı.");

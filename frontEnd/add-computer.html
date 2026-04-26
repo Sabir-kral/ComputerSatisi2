@@ -74,9 +74,10 @@
                 try {
                     const res = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/upload/image', {
                         method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
+                        headers: { 'Authorization': `Bearer ${token}` ,
+                            'ngrok-skip-browser-warning': 'true'
+                        },
                         body: formData,
-                        'ngrok-skip-browser-warning': 'true'
                     });
 
                     const data = await res.json();
@@ -120,7 +121,8 @@
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
                 },
                 body: JSON.stringify({
                     name,
@@ -128,7 +130,6 @@
                     description,
                     imageLinks: uploadedUrls
                 }),
-                'ngrok-skip-browser-warning': 'true'
             });
 
             if (response.ok) {

@@ -7,10 +7,10 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     try {
         const response = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/auth/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-            'ngrok-skip-browser-warning': 'true'
-        });
+            headers: { 'Content-Type': 'application/json' ,
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ email, password }),        });
 
         const data = await response.json();
 

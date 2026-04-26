@@ -5,9 +5,8 @@ let currentComputerId = null;
 
 async function loadProfile() {
     const response = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/profile', {
-        headers: { 'Authorization': `Bearer ${token}` },
-        'ngrok-skip-browser-warning': 'true'
-    });
+        headers: { 'Authorization': `Bearer ${token}` ,
+    'ngrok-skip-browser-warning': 'true'},    });
 
     if (response.status === 401 || response.status === 403) {
         localStorage.clear();
@@ -42,10 +41,10 @@ async function processUpdate() {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify(data),
-            'ngrok-skip-browser-warning': 'true'
         });
 
         if (response.ok) {
@@ -67,9 +66,8 @@ async function deleteAccount() {
     if (confirm("Hesabınız həmişəlik silinsin?")) {
         await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/delete', {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` },
-            'ngrok-skip-browser-warning': 'true'
-        });
+            headers: { 'Authorization': `Bearer ${token}` ,
+        'ngrok-skip-browser-warning': 'true'},        });
         logout();
     }
 }
@@ -98,8 +96,8 @@ async function getMyComputers() {
 
     try {
         const res = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/v1', {
-            headers: { 'Authorization': `Bearer ${token}` },
-            'ngrok-skip-browser-warning': 'true'
+            headers: { 'Authorization': `Bearer ${token}` ,
+        'ngrok-skip-browser-warning': 'true'},
         });
 
         if (res.ok) {
@@ -166,9 +164,8 @@ async function getSellingComputers() {
 
     try {
         const res = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/selling', {
-            headers: { 'Authorization': `Bearer ${token}` },
-            'ngrok-skip-browser-warning': 'true'
-        });
+            headers: { 'Authorization': `Bearer ${token}` ,
+        'ngrok-skip-browser-warning': 'true'},        });
 
         if (res.ok) {
             const computers = await res.json();
@@ -210,9 +207,8 @@ async function openSellingDetail(id) {
 
     try {
         const res = await fetch(`https://denatured-depress-munchkin.ngrok-free.dev/api/computers/${id}`, {
-            headers: { 'Authorization': `Bearer ${token}` },
-            'ngrok-skip-browser-warning': 'true'
-        });
+            headers: { 'Authorization': `Bearer ${token}` ,
+        'ngrok-skip-browser-warning': 'true'},        });
         const pc = await res.json();
         const img = pc.imageLinks?.[0] || 'https://via.placeholder.com/400x250?text=No+Image';
 
@@ -273,10 +269,10 @@ async function submitUpdateComputer() {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
             },
-            body: JSON.stringify({ name, price: parseFloat(price), description }),
-            'ngrok-skip-browser-warning': 'true'
+            body: JSON.stringify({ name, price: parseFloat(price), description })
         });
 
         if (res.ok) {
@@ -298,9 +294,9 @@ async function deleteComputer(id) {
     try {
         const res = await fetch(`https://denatured-depress-munchkin.ngrok-free.dev/api/computers/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` },
-            'ngrok-skip-browser-warning': 'true'
-        });
+            headers: { 'Authorization': `Bearer ${token}` ,
+        'ngrok-skip-browser-warning': 'true'}
+                });
 
         if (res.ok) {
             alert("Kompüter uğurla silindi!");

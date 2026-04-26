@@ -30,10 +30,10 @@ async function verify() {
 
         const response = await fetch("https://denatured-depress-munchkin.ngrok-free.dev/api/users/verify", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(request),
-            'ngrok-skip-browser-warning': 'true'
-        });
+            headers: { "Content-Type": "application/json" ,
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(request)        });
 
         const data = await response.json();
 
@@ -66,9 +66,10 @@ async function resendOTP() {
     try {
         const response = await fetch("https://denatured-depress-munchkin.ngrok-free.dev/api/users/resendOTP", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email }),
-            'ngrok-skip-browser-warning': 'true'
+            headers: { "Content-Type": "application/json" ,
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ email: email })
         });
 
         if (response.ok) {
