@@ -194,7 +194,7 @@
     </div>
 
     <script>
-        const API_BASE = "http://localhost:8080/api";
+        const API_BASE = "https://denatured-depress-munchkin.ngrok-free.dev/api";
 
         function checkAuth() {
             const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
@@ -217,7 +217,9 @@
 
         async function loadComputers() {
             try {
-                const res = await fetch(`${API_BASE}/customers/v2`);
+                const res = await fetch(`${API_BASE}/customers/v2`,{
+                    'ngrok-skip-browser-warning': 'true'
+                });
                 const data = await res.json();
                 const container = document.getElementById("computer-container");
 
@@ -251,7 +253,8 @@
 
     try {
         const res = await fetch(`${API_BASE}/computers/${id}`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            'ngrok-skip-browser-warning': 'true'
         });
         const pc = await res.json();
         const images = pc.imageLinks && pc.imageLinks.length > 0
@@ -409,12 +412,13 @@ function closeDetails() {
             }
 
             try {
-                const res = await fetch(`http://localhost:8080/api/customers/buy/${computerId}`, {
+                const res = await fetch(`https://denatured-depress-munchkin.ngrok-free.dev/api/customers/buy/${computerId}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    'ngrok-skip-browser-warning': 'true'
                 });
 
                 if (res.ok) {

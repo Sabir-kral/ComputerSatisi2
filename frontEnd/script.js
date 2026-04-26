@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "https://denatured-depress-munchkin.ngrok-free.dev/api/";
 let currentIdx = 0;
 let productImages = [];
 
@@ -26,7 +26,9 @@ function checkAuth() {
 
 async function fetchComputers() {
     try {
-        const res = await fetch(`${API_BASE}/customers/v2`);
+        const res = await fetch(`${API_BASE}/customers/v2`,{
+            'ngrok-skip-browser-warning': 'true'
+        });
         const data = await res.json();
         const container = document.getElementById("computer-container");
         
@@ -53,7 +55,8 @@ async function openDetails(id) {
 
     try {
         const res = await fetch(`${API_BASE}/computers/${id}`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            'ngrok-skip-browser-warning': 'true'
         });
         const pc = await res.json();
         const img = pc.imageLinks?.[0] || 'https://via.placeholder.com/450x300?text=No+Image';

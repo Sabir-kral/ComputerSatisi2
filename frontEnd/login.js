@@ -5,10 +5,11 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('http://localhost:8080/api/auth/login', {
+        const response = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password }),
+            'ngrok-skip-browser-warning': 'true'
         });
 
         const data = await response.json();

@@ -4,8 +4,9 @@ if (!token) location.href = 'login.html';
 let currentComputerId = null;
 
 async function loadProfile() {
-    const response = await fetch('http://localhost:8080/api/customers/profile', {
-        headers: { 'Authorization': `Bearer ${token}` }
+    const response = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/profile', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        'ngrok-skip-browser-warning': 'true'
     });
 
     if (response.status === 401 || response.status === 403) {
@@ -37,13 +38,14 @@ async function processUpdate() {
     };
 
     try {
-        const response = await fetch(`http://localhost:8080/api/customers/profile?email=${encodeURIComponent(currentEmail)}`, {
+        const response = await fetch(`https://denatured-depress-munchkin.ngrok-free.dev/api/customers/profile?email=${encodeURIComponent(currentEmail)}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            'ngrok-skip-browser-warning': 'true'
         });
 
         if (response.ok) {
@@ -63,9 +65,10 @@ async function processUpdate() {
 
 async function deleteAccount() {
     if (confirm("Hesabınız həmişəlik silinsin?")) {
-        await fetch('http://localhost:8080/api/customers/delete', {
+        await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/delete', {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 'Authorization': `Bearer ${token}` },
+            'ngrok-skip-browser-warning': 'true'
         });
         logout();
     }
@@ -94,8 +97,9 @@ async function getMyComputers() {
     totalOrderPrice = 0; // Cəmi sıfırlayırıq
 
     try {
-        const res = await fetch('http://localhost:8080/api/customers/v1', {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/v1', {
+            headers: { 'Authorization': `Bearer ${token}` },
+            'ngrok-skip-browser-warning': 'true'
         });
 
         if (res.ok) {
@@ -161,8 +165,9 @@ async function getSellingComputers() {
     container.innerHTML = "<p style='color:white'>Yüklənir...</p>";
 
     try {
-        const res = await fetch('http://localhost:8080/api/customers/selling', {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/selling', {
+            headers: { 'Authorization': `Bearer ${token}` },
+            'ngrok-skip-browser-warning': 'true'
         });
 
         if (res.ok) {
@@ -204,8 +209,9 @@ async function openSellingDetail(id) {
     content.innerHTML = "<p style='color:white;text-align:center;'>Yüklənir...</p>";
 
     try {
-        const res = await fetch(`http://localhost:8080/api/computers/${id}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch(`https://denatured-depress-munchkin.ngrok-free.dev/api/computers/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+            'ngrok-skip-browser-warning': 'true'
         });
         const pc = await res.json();
         const img = pc.imageLinks?.[0] || 'https://via.placeholder.com/400x250?text=No+Image';
@@ -263,13 +269,14 @@ async function submitUpdateComputer() {
     }
 
     try {
-        const res = await fetch(`http://localhost:8080/api/computers/${currentComputerId}`, {
+        const res = await fetch(`https://denatured-depress-munchkin.ngrok-free.dev/api/computers/${currentComputerId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ name, price: parseFloat(price), description })
+            body: JSON.stringify({ name, price: parseFloat(price), description }),
+            'ngrok-skip-browser-warning': 'true'
         });
 
         if (res.ok) {
@@ -289,9 +296,10 @@ async function deleteComputer(id) {
     if (!confirm("Bu kompüteri silmək istədiyinizdən əminsiniz?")) return;
 
     try {
-        const res = await fetch(`http://localhost:8080/api/computers/${id}`, {
+        const res = await fetch(`https://denatured-depress-munchkin.ngrok-free.dev/api/computers/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 'Authorization': `Bearer ${token}` },
+            'ngrok-skip-browser-warning': 'true'
         });
 
         if (res.ok) {

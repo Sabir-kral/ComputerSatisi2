@@ -18,10 +18,11 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     }
 
     try {
-        const response = await fetch('http://localhost:8080/api/customers', { 
+        const response = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, surname, email, password })
+            body: JSON.stringify({ name, surname, email, password }),
+            'ngrok-skip-browser-warning': 'true'
         });
 
         const data = await response.json();
