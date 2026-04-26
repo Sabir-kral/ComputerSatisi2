@@ -42,43 +42,100 @@ async function fetchComputers() {
 async function openDetails(id) {
     const overlay = document.getElementById("detailOverlay");
     const content = document.getElementById("detailContent");
-    
-    overlay.classList.add("active");
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+
+    overlay.style.display = "flex";
+    overlay.style.opacity = "0";
     content.innerHTML = "<h1 style='color:white'>Yüklənir...</h1>";
 
-    const res = await fetch(`http://localhost:8080/api/computers/${id}`);
-    const pc = await res.json();
-    const mainImg = pc.imageLinks && pc.imageLinks.length > 0 ? pc.imageLinks[0] : 'https://via.placeholder.com/400';
+    // Fade in overlay
+    setTimeout(() => { overlay.style.opacity = "1"; overlay.style.transition = "opacity 0.3s"; }, 10);
 
-    content.innerHTML = `
-        <div class="left-side">
-            <img src="${mainImg}" class="detail-img">
-            <h1 class="detail-name">${pc.name}</h1>
-        </div>
-        <div class="right-side">
-            <div class="detail-desc">
-                <p>${pc.description}</p>
+    try {
+        const res = await fetch(`${API_BASE}/computers/${id}`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        const pc = await res.json();
+        const img = pc.imageLinks?.[0] || 'https://via.placeholder.com/450x300?text=No+Image';
+
+        content.innerHTML = `
+            <div class="left-side">
+                <img src="${img}" class="detail-img">
+                <h1 class="detail-name">${pc.name}</h1>
             </div>
-            <h2 style="color:#58a6ff; margin-top:20px; font-size:2rem">${pc.price} AZN</h2>
-            <button onclick="closeDetails()" style="margin-top:20px; background:#58a6ff; border:none; color:white; padding:10px 25px; border-radius:5px; cursor:pointer; font-weight:bold;">GERİ</button>
-        </div>
-    `;
-    
-    createJellyBalls();
-}
+            <div class="right-side">
+                <div class="detail-desc">${pc.description}</div>
+                <div class="detail-price">${pc.price} AZN</div>
+                <div style="display:flex; gap:15px; margin-top:25px;">
+                    <button class="back-btn" onclick="closeDetails()">← GERİ</button>
+                    <button class="back-btn" style="background:#49fb35; color:#000;" onclick="buyComputer(${pc.id})">İNDİ AL</button>
+                </div>
+            </div>
+        `;
 
-function createJellyBalls() {
-    const overlay = document.getElementById("detailOverlay");
-    document.querySelectorAll(".jelly-ball").forEach(b => b.remove());
+        // Wobble when hitting edges
+        content.classList.remove("wobble");
+        void content.offsetWidth; // reflow
+        content.classList.add("wobble");
+        createBalls();
 
-    for (let i = 0; i < 5; i++) {
-        const ball = document.createElement("div");
-        ball.className = "jelly-ball";
-        const size = Math.random() * 120 + 100 + "px";
-        ball.style.width = size;
-        ball.style.height = size;
-        ball.style.animationDuration = (Math.random() * 5 + 10) + "s";
-        ball.style.animationDelay = (Math.random() * 5) + "s";
-        overlay.appendChild(ball);
+    } catch (e) {
+        closeDetails();
     }
 }
+
+function closeDetails() {
+    const overlay = document.getElementById("detailOverlay");
+    overlay.style.opacity = "0";
+    setTimeout(() => {
+        overlay.style.display = "none";
+        overlay.style.opacity = "1";
+        document.querySelectorAll(".jelly-ball").forEach(b => b.remove());
+    }, 300);
+}
+
+// Wobble on drag to edges
+document.addEventListener("DOMContentLoaded", () => {
+    const overlay = document.getElementById("detailOverlay");
+    const content = document.getElementById("detailContent");
+    let isDragging = false;
+    let startX, startY, currentX = 0, currentY = 0;
+
+    content.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        startX = e.clientX - currentX;
+        startY = e.clientY - currentY;
+        content.style.cursor = "grabbing";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        currentX = e.clientX - startX;
+        currentY = e.clientY - startY;
+
+        const maxX = (window.innerWidth - content.offsetWidth) / 2;
+        const maxY = (window.innerHeight - content.offsetHeight) / 2;
+
+        // Wobble when hitting edges
+        if (Math.abs(currentX) > maxX * 0.8 || Math.abs(currentY) > maxY * 0.8) {
+            content.classList.remove("wobble");
+            void content.offsetWidth;
+            content.classList.add("wobble");
+            currentX = Math.sign(currentX) * maxX * 0.8;
+            currentY = Math.sign(currentY) * maxY * 0.8;
+        }
+
+        content.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    });
+
+    document.addEventListener("mouseup", () => {
+        if (!isDragging) return;
+        isDragging = false;
+        content.style.cursor = "grab";
+        // Snap back to center
+        content.style.transition = "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+        content.style.transform = "translate(0, 0)";
+        currentX = 0; currentY = 0;
+        setTimeout(() => { content.style.transition = ""; }, 400);
+    });
+});

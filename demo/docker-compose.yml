@@ -38,6 +38,8 @@ services:
       - "8080:8080"
     networks:
       - computersatisi-net
+    volumes:
+      - ./uploads:/app/uploads
 
   computersatisi-frontend:
     build: /home/root123/ComputerSatisi2/frontEnd

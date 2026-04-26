@@ -4,6 +4,38 @@
     <meta charset="UTF-8">
     <title>Kompüter Əlavə Et</title>
     <link rel="stylesheet" href="add-computer.css">
+    <style>
+        .image-upload-area {
+            border: 2px dashed #30363d;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 16px;
+            color: #8b949e;
+        }
+        .image-upload-area:hover { border-color: #58a6ff; color: #58a6ff; }
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .preview-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #30363d;
+        }
+        .upload-status {
+            color: #58a6ff;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            min-height: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="card">
@@ -11,28 +43,90 @@
         <input type="text" id="pc-name" placeholder="Kompüterin Adı (Məs: Dell XPS)">
         <input type="number" id="pc-price" placeholder="Qiymət (AZN)">
         <textarea id="pc-desc" placeholder="Təsvir"></textarea>
+
+        <!-- IMAGE UPLOAD -->
+        <div class="image-upload-area" onclick="document.getElementById('image-input').click()">
+            📷 Şəkil əlavə etmək üçün klikləyin
+        </div>
+        <input type="file" id="image-input" accept="image/*" multiple style="display:none" onchange="handleImageSelect(event)">
+        <div class="upload-status" id="upload-status"></div>
+        <div class="image-preview-container" id="image-previews"></div>
+
         <button class="btn-blue" onclick="savePC()">Paylaş</button>
         <button class="btn-danger" onclick="history.back()">Geri</button>
     </div>
 
     <script>
+        const uploadedUrls = [];
+
+        async function handleImageSelect(event) {
+            const files = event.target.files;
+            const token = localStorage.getItem('accessToken');
+            const status = document.getElementById('upload-status');
+            const previews = document.getElementById('image-previews');
+
+            for (let file of files) {
+                status.innerText = `Yüklənir: ${file.name}...`;
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const res = await fetch('http://localhost:8080/api/upload/image', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        uploadedUrls.push(data.url);
+
+                        const img = document.createElement('img');
+                        img.src = data.url;
+                        img.className = 'preview-img';
+                        previews.appendChild(img);
+
+                        status.innerText = `✓ ${file.name} yükləndi`;
+                    } else {
+                        status.innerText = `✗ ${file.name} yüklənmədi`;
+                    }
+                } catch (err) {
+                    status.innerText = 'Bağlantı xətası!';
+                }
+            }
+        }
+
         async function savePC() {
             const name = document.getElementById('pc-name').value;
             const price = document.getElementById('pc-price').value;
             const description = document.getElementById('pc-desc').value;
+            const token = localStorage.getItem('accessToken');
 
             if (!name || !price || !description) {
                 alert("Bütün xanaları doldurun!");
                 return;
             }
 
+            if (!token) {
+                alert("Zəhmət olmasa giriş edin!");
+                location.href = 'login.html';
+                return;
+            }
+
             const response = await fetch('http://localhost:8080/api/computers/add', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name, price: parseFloat(price), description })
+                body: JSON.stringify({
+                    name,
+                    price: parseFloat(price),
+                    description,
+                    imageLinks: uploadedUrls
+                })
             });
 
             if (response.ok) {
