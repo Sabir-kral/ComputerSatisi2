@@ -3,40 +3,52 @@ async function verify() {
     const result = document.getElementById("result");
     const codeInput = document.getElementById("otp-code");
 
+    if (!codeInput) {
+        console.error("otp-code inputu tapılmadı");
+        return;
+    }
+
     if (!email) {
-        alert("Sessiya tapılmadı, yenidən qeydiyyatdan keçin.");
+        alert("Email tapılmadı, yenidən qeydiyyatdan keçin.");
         window.location.href = "register.html";
         return;
     }
 
     const code = codeInput.value.trim();
-    if (code.length !== 6) {
-        result.innerText = "6 rəqəmli kodu daxil edin.";
+
+    if (!code || code.length !== 6) {
+        result.style.color = "#f87171";
+        result.innerText = "Zəhmət olmasa 6 rəqəmli kodu daxil edin.";
         return;
     }
 
     try {
-        const response = await fetch("https://denatured-depress-munchkin.ngrok-free.dev/api/users/verify", {
+        const request = {
+            "email": email,      // email is already a string, NO .value
+            "code": code
+        };
+
+        const response = await fetch("http://localhost:8080/api/users/verify", {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "ngrok-skip-browser-warning": "true" 
-            },
-            body: JSON.stringify({ email: email, code: code })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(request)
         });
+
+        const data = await response.json();
 
         if (response.ok) {
             localStorage.removeItem("pendingEmail");
             result.style.color = "green";
-            result.innerText = "Təsdiqləndi! Girişə yönləndirilirsiniz...";
+            result.innerText = "Email təsdiqləndi! Giriş səhifəsinə yönləndirilirsiniz...";
             setTimeout(() => { window.location.href = "login.html"; }, 1500);
         } else {
-            const data = await response.json();
             result.style.color = "#f87171";
             result.innerText = data.message || "Kod yanlışdır";
         }
     } catch (err) {
-        result.innerText = "Bağlantı xətası!";
+        console.error("Verify xətası:", err);
+        result.style.color = "#f87171";
+        result.innerText = "Bağlantı xətası! Serveri yoxlayın.";
     }
 }
 
@@ -51,12 +63,9 @@ async function resendOTP() {
     }
 
     try {
-        const response = await fetch("https://denatured-depress-munchkin.ngrok-free.dev/api/users/resendOTP", {
+        const response = await fetch("http://localhost:8080/api/users/resendOTP", {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "ngrok-skip-browser-warning": "true"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: email })
         });
 
@@ -70,6 +79,7 @@ async function resendOTP() {
         }
     } catch (err) {
         console.error("Resend xətası:", err);
-        result.innerText = "Bağlantı xətası!";
+        result.style.color = "#f87171";
+        result.innerText = "Bağlantı xətası! İnterneti yoxlayın.";
     }
 }
