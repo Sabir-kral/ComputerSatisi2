@@ -1,4 +1,4 @@
-package az.computer.demo.Entity; // Qeyd: Bu class adətən .config paketində olur, Entity yox
+package az.computer.demo.Entity; // Qeyd: Bu class adətən .config paketində olur
 
 import az.computer.demo.Service.CustomUserDetailsService;
 import az.computer.demo.Utility.JwtFilter;
@@ -23,6 +23,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -40,37 +41,32 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // ... digər ayarlar
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Hamıya açıq olan yollar (BUNLARI ƏN YUXARIYA QOY)
+                        // 1. Ümumi icazələr
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/users/**").permitAll()
-                        .requestMatchers("/api/upload/**", "/uploads/**").permitAll()
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
 
-                        // 2. Qeydiyyat və Kompüter siyahısı üçün xüsusi icazə
-                        // POST /api/customers üçün mütləq permitAll olmalıdır
-                        .requestMatchers(HttpMethod.POST, "/api/customers").permitAll()
+                        // 2. Qeydiyyat və Kompüter siyahısı (Hamı üçün)
+                        // QEYD: Əgər link /api/customers-dirsə, ulduzlarla yazmaq daha etibarlıdır
+                        .requestMatchers(HttpMethod.POST, "/api/customers/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
 
-                        // 3. Login tələb edən yollar
-                        .requestMatchers("/api/customers/buy/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/customers/profile").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/customers/profile").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/customers/v1").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/customers/selling").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/computers/{id}").authenticated()
+                        // 3. Digər statik və sənədləşmə yolları
+                        .requestMatchers("/api/upload/**", "/uploads/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // 4. Qalan hər şey üçün login tələb et
+                        // 4. Login tələb edən yollar
+                        .requestMatchers("/api/customers/buy/**").authenticated()
+                        .requestMatchers("/api/customers/profile/**").authenticated()
+                        .requestMatchers("/api/customers/v1").authenticated()
+                        .requestMatchers("/api/customers/selling").authenticated()
+                        .requestMatchers("/api/payments/**").authenticated()
+
+                        // 5. Qalan hər şey
                         .anyRequest().authenticated()
                 );
 
-        // Filteri əlavə edirik
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -79,9 +75,23 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*")); // Və ya "http://10.0.2.15:3000"
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // DELETE mütləq olmalıdır
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        // BÜTÜN origin-lərə icazə veririk
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
+
+        // BÜTÜN metodlara icazə veririk
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // ÇOX VACİB: ngrok-skip-browser-warning və digər başlıqlara icazə veririk
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "X-Requested-With",
+                "ngrok-skip-browser-warning"
+        ));
+
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
