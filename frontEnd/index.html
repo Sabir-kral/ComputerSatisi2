@@ -187,6 +187,7 @@
 
     <main class="container">
         <div id="computer-container" class="grid-container"></div>
+        <div id="backend-status"></div>
     </main>
 
     <div id="detailOverlay" class="detail-overlay">
@@ -216,30 +217,34 @@
         }
 
         async function loadComputers() {
-            try {
-                const res = await fetch(`${API_BASE}/customers/v2`);
-                const data = await res.json();
-                const container = document.getElementById("computer-container");
-
-                if (!data || data.length === 0) {
-                    container.innerHTML = "<p style='text-align:center; color:#8b949e; font-size:1.5rem; margin-top:50px;'>Hal-hazırda heç bir kompüter yoxdur.</p>";
-                    return;
-                }
-
-                // Sənin kompüterləri göstərdiyin hissə belə olmalıdır:
-container.innerHTML = computers.map(pc => `
-    <div class="pc-card" onclick="toggleSelectPc(${pc.id}, this)" 
-         style="cursor:pointer; padding:10px; margin:5px; background:#161b22; border-radius:8px; transition: 0.3s;">
-        <img src="${pc.images[0]?.url}" width="100%">
-        <h3>${pc.name}</h3>
-        <p>${pc.price} AZN</p>
-    </div>
-`).join('');
-            } catch (err) {
-                console.log("Backend offline:", err);
-            }
+    try {
+        const response = await fetch("http://localhost:8080/api/computers"); // Sənin API ünvanın
+        
+        if (!response.ok) {
+            throw new Error("Serverdən cavab alınmadı");
         }
 
+        // BURA DİQQƏT: computers dəyişənini burada təyin etməlisən
+        const computers = await response.json(); 
+
+        const container = document.getElementById("computers-container");
+        if (computers && computers.length > 0) {
+            container.innerHTML = computers.map(pc => `
+                <div class="pc-card">
+                    <h3>${pc.name}</h3>
+                    <p>${pc.price} AZN</p>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = "<p>Heç bir kompüter tapılmadı.</p>";
+        }
+
+    } catch (error) {
+        console.error("Xəta baş verdi:", error);
+        // Əgər computers is not defined xətası alırsansa, bura düşür
+        document.getElementById("backend-status").innerText = "Backend offline və ya JavaScript xətası!";
+    }
+}
         async function openDetails(id) {
     const overlay = document.getElementById("detailOverlay");
     const content = document.getElementById("detailContent");
