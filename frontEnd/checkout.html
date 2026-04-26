@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <title>Ödəniş və Çatdırılma | TechStore</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body { background-color: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .checkout-card { background: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { color: #f87171; text-align: center; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        #card-element { background: white; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+        button { width: 100%; padding: 14px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #be123c; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        #result-message { text-align: center; margin-top: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="checkout-card">
+    <h2>Sifarişi Tamamla</h2>
+    
+    <div id="product-info" style="margin-bottom: 15px; font-size: 14px; color: #94a3b8;"></div>
+
+    <input type="text" id="full-name" placeholder="Ad və Soyad">
+    <input type="email" id="email" placeholder="E-mail ünvanınız">
+    <input type="text" id="address" placeholder="Çatdırılma ünvanı (Küçə, Bina, Mənzil)">
+    
+    <div id="card-element"></div>
+    
+    <button id="pay-button">Ödənişi İndi Et</button>
+    <div id="result-message"></div>
+</div>
+
+<script>
+    // 1. Stripe-ı başlat (Öz public key-ini bura yaz)
+    const stripe = Stripe('pk_test_51TQQNYJDXQulQe9FVbHvOLxPDAJOSG9twt7JMK6AsyZwcPR8RAoNQWE64jQsYCQUw0b948W4vx4JzxRgALrTjm7i003julvcXt');
+    const elements = stripe.elements();
+    
+    // Kart elementini yarat və dizayn ver
+    const card = elements.create('card', {
+        style: {
+            base: { fontSize: '16px', color: '#32325d' }
+        }
+    });
+    card.mount('#card-element');
+
+    // Səhifə yüklənəndə hansı kompüteri aldığımızı yoxlayaq (Localstorage-dan)
+    const selectedPC = JSON.parse(localStorage.getItem("selectedPC"));
+    if(selectedPC) {
+        document.getElementById('product-info').innerText = `Məhsul: ${selectedPC.name} | Qiymət: ${selectedPC.price} AZN`;
+    }
+
+    const payButton = document.getElementById('pay-button');
+
+    payButton.addEventListener('click', async () => {
+        payButton.disabled = true;
+        const address = document.getElementById('address').value;
+        const email = document.getElementById('email').value;
+
+        if(!address || !email) {
+            alert("Zəhmət olmasa ünvan və email daxil edin!");
+            payButton.disabled = false;
+            return;
+        }
+
+        // 2. Stripe Token yarat
+        const {token, error} = await stripe.createToken(card);
+
+        if (error) {
+            document.getElementById('result-message').innerText = error.message;
+            document.getElementById('result-message').style.color = "#f87171";
+            payButton.disabled = false;
+        } else {
+            // 3. Token və məlumatları Backend-ə göndər
+            processPayment(token.id, address, email, selectedPC);
+        }
+    });
+
+    async function processPayment(tokenId, address, email, pc) {
+        const orderRequest = {
+            email: email,
+            address: address,
+            computerId: pc.id,
+            amount: pc.price, // AZN-i qəpiyə çeviririk (Stripe belə tələb edir)
+            stripeToken: tokenId
+        };
+
+        try {
+            const response = await fetch('http://localhost:8080/api/payments/charge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderRequest)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('result-message').innerText = "Təbriklər! Ödəniş alındı. Satıcı tezliklə məhsulu göndərəcək.";
+                document.getElementById('result-message').style.color = "#4ade80";
+                localStorage.removeItem("selectedPC");
+                setTimeout(() => { window.location.href = "index.html"; }, 3000);
+            } else {
+                alert("Xəta: " + data.message);
+                payButton.disabled = false;
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Serverlə bağlantı kəsildi.");
+            payButton.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>

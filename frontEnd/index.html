@@ -419,6 +419,7 @@ function closeDetails() {
 
                 if (res.ok) {
                     alert("Təbriklər! Alış uğurla tamamlandı.");
+                    localStorage.setItem("SelectedPc",computerId)
                     closeDetails();
                 } else {
                     const errorData = await res.json();
