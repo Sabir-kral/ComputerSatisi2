@@ -16,19 +16,24 @@
                 <p><strong>Email:</strong> <span id="view-email">...</span></p>
             </div>
             
-<div class="button-group">
-    <button class="btn-blue" onclick="showUpdate()">Məlumatları Yenilə</button>
-    <button class="btn-blue" style="background:#8957e5" onclick="getMyComputers()">Mənim Kompüterlərim</button>
-    <button class="btn-blue" style="background:#49fb35; color:#000" onclick="location.href='add-computer.html'">Kompüter Əlavə Et +</button>
-    <button class="btn-danger" onclick="logout()">Çıxış Et</button>
-    <button class="btn-danger btn-delete" onclick="deleteAccount()">Hesabı Həmişəlik Sil</button>
-</div>
+            <div class="button-group">
+                <button class="btn-blue" onclick="showUpdate()">Məlumatları Yenilə</button>
+                <button class="btn-blue" style="background:#8957e5" onclick="getMyComputers()">Aldığım Kompüterlər</button>
+                <button class="btn-blue" style="background:#f78166" onclick="getSellingComputers()">Satdığım Kompüterlər</button>
+                <button class="btn-blue" style="background:#49fb35; color:#000" onclick="location.href='add-computer.html'">Kompüter Əlavə Et +</button>
+                <button class="btn-danger" onclick="logout()">Çıxış Et</button>
+                <button class="btn-danger btn-delete" onclick="deleteAccount()">Hesabı Həmişəlik Sil</button>
+            </div>
         </div>
 
         <div id="my-computers-area" class="computers-list-container" style="display:none;">
-            <h3 class="section-title">Mənim Kompüterlərim</h3>
-            <div id="pc-list-content">
-                </div>
+            <h3 class="section-title">Aldığım Kompüterlər</h3>
+            <div id="pc-list-content"></div>
+        </div>
+
+        <div id="selling-area" class="computers-list-container" style="display:none;">
+            <h3 class="section-title">Satdığım Kompüterlər</h3>
+            <div id="selling-list"></div>
         </div>
 
         <div id="update-form" style="display:none;">
@@ -40,7 +45,52 @@
             <button class="btn-danger" onclick="location.reload()">Ləğv Et</button>
         </div>
     </div>
-</div>
+    </div>
+
+    <!-- SELLING DETAIL OVERLAY -->
+    <div id="sellingOverlay" style="
+        display:none; position:fixed; top:0; left:0;
+        width:100vw; height:100vh;
+        background:rgba(13,17,23,0.97);
+        z-index:10000; justify-content:center; align-items:center;">
+        <div id="sellingDetail" style="
+            background:#161b22; border:1px solid #30363d;
+            border-radius:20px; padding:40px; max-width:600px;
+            width:90%; animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;">
+            <div id="sellingDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- UPDATE COMPUTER MODAL -->
+    <div id="updateComputerModal" style="
+        display:none; position:fixed; top:0; left:0;
+        width:100vw; height:100vh;
+        background:rgba(13,17,23,0.97);
+        z-index:10001; justify-content:center; align-items:center;">
+        <div style="
+            background:#161b22; border:1px solid #30363d;
+            border-radius:20px; padding:40px; max-width:500px; width:90%;
+            animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;">
+            <h3 style="color:#58a6ff; margin-top:0;">Kompüteri Yenilə</h3>
+            <input type="text" id="update-pc-name" placeholder="Ad" style="width:100%;padding:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:white;box-sizing:border-box;margin-bottom:12px;">
+            <input type="number" id="update-pc-price" placeholder="Qiymət (AZN)" style="width:100%;padding:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:white;box-sizing:border-box;margin-bottom:12px;">
+            <textarea id="update-pc-desc" placeholder="Təsvir" style="width:100%;padding:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:white;box-sizing:border-box;height:100px;margin-bottom:12px;font-family:'Segoe UI',sans-serif;"></textarea>
+            <div style="display:flex;gap:10px;">
+                <button onclick="submitUpdateComputer()" style="flex:1;padding:12px;background:#58a6ff;border:none;border-radius:6px;color:#000;font-weight:bold;cursor:pointer;">Yadda Saxla</button>
+                <button onclick="closeUpdateModal()" style="flex:1;padding:12px;background:transparent;border:1px solid #f87171;border-radius:6px;color:#f87171;font-weight:bold;cursor:pointer;">Ləğv Et</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes cardIn {
+            0%   { transform: scale(0.5); opacity: 0; }
+            60%  { transform: scale(1.05); opacity: 1; }
+            80%  { transform: scale(0.97); }
+            100% { transform: scale(1); }
+        }
+    </style>
+
     <script src="profile.js"></script>
 </body>
 </html>
