@@ -13,14 +13,12 @@ services:
     networks:
       - computersatisi-net
     volumes:
-      - mysql_data:/var/lib/mysql  # ADD THIS
+      - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
-
-
 
   computersatisi-app:
     build: .
@@ -44,6 +42,7 @@ services:
       - computersatisi-net
     volumes:
       - ./uploads:/app/uploads
+      - ./computer-sale.p12:/app/config/computer-sale.p12  # Sertifikatı bağlayırıq
 
   computersatisi-frontend:
     build: /home/root123/ComputerSatisi2/frontEnd
@@ -56,11 +55,13 @@ services:
     networks:
       - computersatisi-net
     environment:
-      - REACT_APP_API_URL=http://10.0.2.15:8080
-      - NEXT_PUBLIC_API_URL=http://10.0.2.15:8080
+      # SSH tunel və SSL istifadə etdiyin üçün artıq https və localhost istifadə edə bilərsən
+      - REACT_APP_API_URL=https://localhost:8080
+      - NEXT_PUBLIC_API_URL=https://localhost:8080
 
 networks:
   computersatisi-net:
     driver: bridge
+
 volumes:
   mysql_data:
