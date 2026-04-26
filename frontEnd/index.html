@@ -194,7 +194,7 @@
     </div>
 
     <script>
-        const API_BASE = "http://localhost:8080/api";
+        const API_BASE = "https://localhost:8080/api";
 
         function checkAuth() {
             const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
@@ -409,7 +409,7 @@ function closeDetails() {
             }
 
             try {
-                const res = await fetch(`http://localhost:8080/api/customers/buy/${computerId}`, {
+                const res = await fetch(`https://localhost:8080/api/customers/buy/${computerId}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,

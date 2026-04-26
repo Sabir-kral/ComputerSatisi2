@@ -28,7 +28,7 @@ async function verify() {
             "code": code
         };
 
-        const response = await fetch("http://localhost:8080/api/users/verify", {
+        const response = await fetch("https://localhost:8080/api/users/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(request)
@@ -63,7 +63,7 @@ async function resendOTP() {
     }
 
     try {
-        const response = await fetch("http://localhost:8080/api/users/resendOTP", {
+        const response = await fetch("https://localhost:8080/api/users/resendOTP", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: email })
