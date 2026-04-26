@@ -20,6 +20,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     try {
         const response = await fetch('https://localhost:8080/api/customers', { 
             method: 'POST',
+            mode:"cors",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, surname, email, password })
         });

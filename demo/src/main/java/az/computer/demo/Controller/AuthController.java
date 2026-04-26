@@ -31,8 +31,11 @@ public class AuthController {
                     request.getEmail(),
                     request.getPassword()
             ));
-        }catch (BadCredentialsException e) {
-            throw new RuntimeException("Daxil edilen melumatlar yanlisdir");
+        } catch (BadCredentialsException e) {
+            throw new RuntimeException("Şifrə və ya email səhvdir");
+        } catch (Exception e) {
+            // Əgər email təsdiqlənməyibsə bura düşəcək
+            throw new RuntimeException(e.getMessage());
         }
 
         UserDetails user = userDetailsService.loadUserByUsername(request.getEmail());
