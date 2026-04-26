@@ -26,9 +26,15 @@
             </div>
         </div>
 
-        <div id="my-computers-area" class="computers-list-container" style="display:none;">
-            <h3 class="section-title">Aldığım Kompüterlər</h3>
-            <div id="pc-list-content"></div>
+<div id="my-computers-area" class="computers-list-container" style="display:none;">
+    <h3 class="section-title">Aldığım Kompüterlər</h3>
+    <div id="pc-list-content"></div>
+    
+    <div id="checkout-summary" style="display:none; margin-top:20px; padding:20px; border-top:2px solid #30363d; text-align:right;">
+        <h3 style="color:white;">Ümumi Cəm: <span id="total-price-display" style="color:#49fb35;">0</span> AZN</h3>
+        <button class="btn-blue" style="background:#49fb35; color:#000; width:200px;" onclick="goToCheckout()">Sifarişi Tamamla</button>
+    </div>
+</div>
         </div>
 
         <div id="selling-area" class="computers-list-container" style="display:none;">

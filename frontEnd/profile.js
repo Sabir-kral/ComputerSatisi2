@@ -76,15 +76,22 @@ function logout() {
     location.href = 'index.html';
 }
 
+// Global dəyişən kimi ümumi cəmi saxlayaq
+let totalOrderPrice = 0;
+
 async function getMyComputers() {
     const area = document.getElementById("my-computers-area");
     const container = document.getElementById("pc-list-content");
+    const summaryDiv = document.getElementById("checkout-summary");
+    const totalDisplay = document.getElementById("total-price-display");
 
     document.getElementById("selling-area").style.display = "none";
     document.getElementById("update-form").style.display = "none";
 
     area.style.display = "block";
     container.innerHTML = "<p style='color:white'>Yüklənir...</p>";
+    summaryDiv.style.display = "none"; // Hələlik gizlədirik
+    totalOrderPrice = 0; // Cəmi sıfırlayırıq
 
     try {
         const res = await fetch('http://localhost:8080/api/customers/v1', {
@@ -99,6 +106,11 @@ async function getMyComputers() {
                 return;
             }
 
+            // Qiymətləri toplayırıq
+            computers.forEach(pc => {
+                totalOrderPrice += pc.price;
+            });
+
             container.innerHTML = computers.map(pc => `
                 <div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:20px; margin-bottom:15px;">
                     <h3 style="color:#58a6ff; margin:0 0 8px 0;">${pc.name}</h3>
@@ -107,6 +119,10 @@ async function getMyComputers() {
                 </div>
             `).join('');
 
+            // Cəmi göstəririk və Checkout düyməsini aktiv edirik
+            totalDisplay.innerText = totalOrderPrice;
+            summaryDiv.style.display = "block";
+
             area.scrollIntoView({ behavior: 'smooth' });
         } else {
             container.innerHTML = "<p style='color:red;'>Məlumatlar gətirilərkən xəta baş verdi.</p>";
@@ -114,6 +130,24 @@ async function getMyComputers() {
     } catch (err) {
         container.innerHTML = "<p style='color:red;'>Serverlə bağlantı kəsildi.</p>";
     }
+}
+
+// Checkout-a yönləndirmə funksiyası
+function goToCheckout() {
+    if (totalOrderPrice <= 0) {
+        alert("Səbət boşdur!");
+        return;
+    }
+
+    // Checkout səhifəsinin başa düşəcəyi formatda localStorage-a yazırıq
+    const orderData = {
+        name: "Toplu Sifariş",
+        price: totalOrderPrice,
+        id: 0 // Çoxlu məhsul olduğu üçün 0 və ya xüsusi bir ID verə bilərsən
+    };
+
+    localStorage.setItem("selectedPC", JSON.stringify(orderData));
+    location.href = 'checkout.html';
 }
 
 async function getSellingComputers() {
