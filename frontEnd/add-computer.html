@@ -72,13 +72,14 @@
                 formData.append('file', file);
 
                 try {
-                    const res = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/upload/image', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` ,
-                            'ngrok-skip-browser-warning': 'true'
-                        },
-                        body: formData,
-                    });
+            const res = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/upload/image', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true' // NGROK FIX
+                },
+                body: formData
+            });
 
                     const data = await res.json();
 

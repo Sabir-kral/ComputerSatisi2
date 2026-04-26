@@ -3,56 +3,43 @@ async function verify() {
     const result = document.getElementById("result");
     const codeInput = document.getElementById("otp-code");
 
-    if (!codeInput) {
-        console.error("otp-code inputu tapılmadı");
-        return;
-    }
-
     if (!email) {
-        alert("Email tapılmadı, yenidən qeydiyyatdan keçin.");
+        alert("Sessiya tapılmadı, yenidən qeydiyyatdan keçin.");
         window.location.href = "register.html";
         return;
     }
 
     const code = codeInput.value.trim();
-
-    if (!code || code.length !== 6) {
-        result.style.color = "#f87171";
-        result.innerText = "Zəhmət olmasa 6 rəqəmli kodu daxil edin.";
+    if (code.length !== 6) {
+        result.innerText = "6 rəqəmli kodu daxil edin.";
         return;
     }
 
     try {
-        const request = {
-            "email": email,      // email is already a string, NO .value
-            "code": code
-        };
-
         const response = await fetch("https://denatured-depress-munchkin.ngrok-free.dev/api/users/verify", {
             method: "POST",
-            headers: { "Content-Type": "application/json" ,
-                'ngrok-skip-browser-warning': 'true'
+            headers: { 
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true" 
             },
-            body: JSON.stringify(request)        });
+            body: JSON.stringify({ email: email, code: code })
+        });
 
         const data = await response.json();
 
         if (response.ok) {
             localStorage.removeItem("pendingEmail");
             result.style.color = "green";
-            result.innerText = "Email təsdiqləndi! Giriş səhifəsinə yönləndirilirsiniz...";
+            result.innerText = "Təsdiqləndi! Girişə yönləndirilirsiniz...";
             setTimeout(() => { window.location.href = "login.html"; }, 1500);
         } else {
             result.style.color = "#f87171";
             result.innerText = data.message || "Kod yanlışdır";
         }
     } catch (err) {
-        console.error("Verify xətası:", err);
-        result.style.color = "#f87171";
-        result.innerText = "Bağlantı xətası! Serveri yoxlayın.";
+        result.innerText = "Bağlantı xətası!";
     }
 }
-
 async function resendOTP() {
     const email = localStorage.getItem("pendingEmail");
     const result = document.getElementById("result");

@@ -215,29 +215,34 @@
             }
         }
 
-        async function loadComputers() {
-            try {
-                const res = await fetch(`${API_BASE}/customers/v2`,{
-                    headers:{'ngrok-skip-browser-warning': 'true'}
-                                });
-                const data = await res.json();
-                const container = document.getElementById("computer-container");
+      // index.html daxilindəki script hissəsi
 
-                if (!data || data.length === 0) {
-                    container.innerHTML = "<p style='text-align:center; color:#8b949e; font-size:1.5rem; margin-top:50px;'>Hal-hazırda heç bir kompüter yoxdur.</p>";
-                    return;
-                }
+async function loadComputers() {
+    try {
+        const res = await fetch(`${API_BASE}/customers/v2`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' } // NGROK FIX
+        });
+        if (!res.ok) throw new Error("Server xətası");
+        const data = await res.json();
+        const container = document.getElementById("computer-container");
 
-                container.innerHTML = data.map(pc => `
-                    <div class="pc-card" onclick="openDetails(${pc.id})">
-                        <h2>${pc.name}</h2>
-                        <p style="color:#58a6ff; font-weight:bold">${pc.price} AZN</p>
-                    </div>
-                `).join('');
-            } catch (err) {
-                console.log("Backend offline:", err);
-            }
+        if (!data || data.length === 0) {
+            container.innerHTML = "<p>Hal-hazırda heç bir kompüter yoxdur.</p>";
+            return;
         }
+
+        container.innerHTML = data.map(pc => `
+            <div class="pc-card" onclick="openDetails(${pc.id})">
+                <h2>${pc.name}</h2>
+                <p style="color:#58a6ff; font-weight:bold">${pc.price} AZN</p>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error("Backend xətası:", err);
+    }
+}
+
+
 
         async function openDetails(id) {
     const overlay = document.getElementById("detailOverlay");
@@ -403,37 +408,41 @@ function closeDetails() {
         }
 
         async function buyComputer(computerId) {
-            const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const token = localStorage.getItem("accessToken"); // Login-dən gələn token
 
-            if (!token) {
-                alert("Kompüter almaq üçün giriş etməlisiniz!");
-                window.location.href = "login.html";
-                return;
+    if (!token) {
+        alert("Giriş etməlisiniz!");
+        window.location.href = "login.html";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/customers/buy/${computerId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true' // NGROK FIX
             }
+        });
 
-            try {
-                const res = await fetch(`https://denatured-depress-munchkin.ngrok-free.dev/api/customers/buy/${computerId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                                });
-
-                if (res.ok) {
-                    alert("Təbriklər! Alış uğurla tamamlandı.");
-                    localStorage.setItem("SelectedPc",computerId)
-                    closeDetails();
-                } else {
-                    const errorData = await res.json();
-                    alert("Xəta: " + (errorData.message || "Alış baş tutmadı."));
-                }
-            } catch (err) {
-                alert("Serverlə bağlantı kəsildi!");
-            }
+        if (res.ok) {
+            // Ödəniş səhifəsi üçün bütün PC detallarını götürək (Swagger-dəki kimi)
+            const pcRes = await fetch(`${API_BASE}/computers/${computerId}`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            const pcData = await pcRes.json();
+            
+            localStorage.setItem("selectedPC", JSON.stringify(pcData));
+            alert("Sifariş səhifəsinə yönləndirilirsiniz...");
+            window.location.href = "checkout.html";
+        } else {
+            alert("Xəta: Alış baş tutmadı.");
         }
-
+    } catch (err) {
+        alert("Serverlə bağlantı kəsildi!");
+    }
+}
         window.onload = () => {
             checkAuth();
             loadComputers();

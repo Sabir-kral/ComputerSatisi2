@@ -6,39 +6,43 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
 
-    // ADD THIS - check values before sending
-    console.log("name:", name);
-    console.log("surname:", surname);
-    console.log("email:", email);
-    console.log("password:", password);
-
-    if (!email) {
-        alert("Email boşdur!");
+    if (!email || !password) {
+        alert("Email və şifrə mütləqdir!");
         return;
     }
 
     try {
+        // QEYD: Backend-də endpoint '/api/customers' və ya '/api/auth/register' ola bilər.
+        // Sənin koduna əsasən '/api/customers' saxladım.
         const response = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers', { 
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' ,
-                        'ngrok-skip-browser-warning': 'true'
+            headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true' // NGROK XƏTASINI DÜZƏLDƏN SƏTİR
             },
             body: JSON.stringify({ name, surname, email, password })
-            });
+        });
+
+        // Cavab JSON deyilsə tutmaq üçün (Unexpected token '<' xətasının qarşısını alır)
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text();
+            console.error("Server JSON qaytarmadı! Gələn cavab:", text);
+            throw new Error("Server xətası: Gözlənilməz cavab formatı.");
+        }
 
         const data = await response.json();
 
         if (response.ok) {
             alert("Qeydiyyat uğurludur! Gmailinizə gələn kodu daxil edin.");
             localStorage.setItem("pendingEmail", email);
-            console.log("Saved email to localStorage:", email);
             window.location.href = "verify.html";
         } else {
-            alert("Xəta: " + (data.message || "Bu məlumatlarla qeydiyyat mümkün olmadı!"));
+            alert("Xəta: " + (data.message || "Məlumatlar yanlışdır!"));
         }
 
     } catch (err) {
         console.error("Şəbəkə xətası:", err);
-        alert("Serverə qoşulmaq mümkün olmadı!");
+        alert("Xəta baş verdi: " + err.message);
     }
 });

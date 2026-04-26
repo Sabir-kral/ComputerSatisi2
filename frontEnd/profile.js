@@ -4,22 +4,26 @@ if (!token) location.href = 'login.html';
 let currentComputerId = null;
 
 async function loadProfile() {
-    const response = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/profile', {
-        headers: { 'Authorization': `Bearer ${token}` ,
-    'ngrok-skip-browser-warning': 'true'},    });
+    const token = localStorage.getItem('accessToken');
+    try {
+        const response = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/profile', {
+            method:"GET",
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true' 
+            }
+        });
 
-    if (response.status === 401 || response.status === 403) {
-        localStorage.clear();
-        location.href = 'login.html';
-        return;
-    }
+        if (response.status === 401 || response.status === 403) {
+            logout();
+            return;
+        }
 
-    const user = await response.json();
-    document.getElementById('view-name').innerText = user.name;
-    document.getElementById('view-surname').innerText = user.surname;
-    document.getElementById('view-email').innerText = user.email;
+        const user = await response.json();
+        document.getElementById('view-name').innerText = user.name;
+        document.getElementById('view-email').innerText = user.email;
+    } catch (e) { console.error("Profil yüklənmədi"); }
 }
-
 function showUpdate() {
     document.getElementById('profile-view').style.display = 'none';
     document.getElementById('update-form').style.display = 'block';
@@ -96,10 +100,11 @@ async function getMyComputers() {
 
     try {
         const res = await fetch('https://denatured-depress-munchkin.ngrok-free.dev/api/customers/v1', {
-            headers: { 'Authorization': `Bearer ${token}` ,
-        'ngrok-skip-browser-warning': 'true'},
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true' 
+            }
         });
-
         if (res.ok) {
             const computers = await res.json();
 
