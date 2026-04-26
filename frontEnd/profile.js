@@ -135,7 +135,7 @@ async function getMyComputers() {
 }
 
 function goToCheckout(){
-    window.href = "checkout.html"
+    window.location.href = "checkout.html"
 }
 
 async function getSellingComputers() {
