@@ -79,6 +79,8 @@ function logout() {
 async function getMyComputers() {
     const area = document.getElementById("my-computers-area");
     const container = document.getElementById("pc-list-content");
+    // 1. Summary sahəsini JS-ə tanıt
+    const summaryArea = document.getElementById("checkout-summary"); 
 
     document.getElementById("selling-area").style.display = "none";
     document.getElementById("update-form").style.display = "none";
@@ -96,24 +98,44 @@ async function getMyComputers() {
 
             if (computers.length === 0) {
                 container.innerHTML = "<p style='color:#8b949e;'>Siz hələ heç bir kompüter almamısınız.</p>";
+                // 2. Əgər kompüter yoxdursa, summary sahəsini gizlət
+                if(summaryArea) summaryArea.style.display = "none"; 
                 return;
             }
 
-            container.innerHTML = computers.map(pc => `
+            // 3. Əgər kompüter VARSA, summary sahəsini GÖSTƏR
+            if(summaryArea) summaryArea.style.display = "block";
+
+            let totalPrice = 0; // Cəmi hesablamaq üçün
+
+            container.innerHTML = computers.map(pc => {
+                totalPrice += pc.price; // Qiymətləri topla
+                return `
                 <div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:20px; margin-bottom:15px;">
                     <h3 style="color:#58a6ff; margin:0 0 8px 0;">${pc.name}</h3>
                     <p style="margin:0 0 5px 0;">${pc.description}</p>
                     <p style="color:#58a6ff; font-weight:bold; margin:0;">${pc.price} AZN</p>
                 </div>
-            `).join('');
+                `;
+            }).join('');
+
+            // 4. Ümumi cəmi ekrana yazdır
+            const totalDisplay = document.getElementById('total-price-display');
+            if(totalDisplay) totalDisplay.innerText = totalPrice;
 
             area.scrollIntoView({ behavior: 'smooth' });
         } else {
             container.innerHTML = "<p style='color:red;'>Məlumatlar gətirilərkən xəta baş verdi.</p>";
+            if(summaryArea) summaryArea.style.display = "none";
         }
     } catch (err) {
         container.innerHTML = "<p style='color:red;'>Serverlə bağlantı kəsildi.</p>";
+        if(summaryArea) summaryArea.style.display = "none";
     }
+}
+
+function goToCheckout(){
+    window.href = "checkout.html"
 }
 
 async function getSellingComputers() {
