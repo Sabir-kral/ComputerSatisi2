@@ -50,6 +50,11 @@ public class CustomerController {
     public List<ComputerResponse> getAll(){
         return service.getAll();
     }
+    @GetMapping("/selling")
+    @Operation(summary = "Get selling computers")
+    public List<ComputerResponse> getSelling(){
+        return service.getSelling();
+    }
 
 
 

@@ -111,5 +111,40 @@ async function getMyComputers() {
         container.innerHTML = "<p style='color:red'>Serverlə bağlantı kəsildi.</p>";
     }
 }
+async function getSellingComputers() {
+    const token = localStorage.getItem('accessToken');
+    const area = document.getElementById("selling-area");
+    const container = document.getElementById("selling-list");
+
+    area.style.display = "block";
+    container.innerHTML = "<p style='color:white'>Yüklənir...</p>";
+
+    try {
+        const res = await fetch('http://localhost:8080/api/customers/selling', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            const computers = await res.json();
+
+            if (computers.length === 0) {
+                container.innerHTML = "<p style='color:#8b949e;'>Siz hələ heç bir kompüter satmırsınız.</p>";
+                return;
+            }
+
+            container.innerHTML = computers.map(pc => `
+                <div style="background:#161b22; border:1px solid #30363d; border-radius:10px; padding:20px; margin-bottom:15px;">
+                    <h3 style="color:#58a6ff; margin:0 0 8px 0;">${pc.name}</h3>
+                    <p style="margin:0 0 5px 0;">${pc.description}</p>
+                    <p style="color:#58a6ff; font-weight:bold; margin:0;">${pc.price} AZN</p>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = "<p style='color:red;'>Məlumatlar gətirilərkən xəta baş verdi.</p>";
+        }
+    } catch (err) {
+        container.innerHTML = "<p style='color:red;'>Bağlantı xətası!</p>";
+    }
+}
 
 loadProfile();

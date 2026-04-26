@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/users/**").permitAll()
                         .requestMatchers("/api/upload/**", "/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/customers/selling").authenticated()
 
                         // ANA SƏHİFƏ ÜÇÜN BU İKİ SƏTRİ ƏLAVƏ ET:
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()

@@ -180,4 +180,11 @@ public class CustomerService {
                 .toList();
         return ComputerMapper.toDTOList(availableComputers);
     }
+
+    public List<ComputerResponse> getSelling() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        CustomerEntity customer = customerRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Not Found"));
+        return ComputerMapper.toDTOList(customer.getSellingComputers());
+    }
 }
