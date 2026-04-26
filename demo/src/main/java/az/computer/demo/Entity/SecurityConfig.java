@@ -42,27 +42,31 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // ... digər ayarlar
                 .authorizeHttpRequests(auth -> auth
+                        // 1. Hamıya açıq olan yollar (BUNLARI ƏN YUXARIYA QOY)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/users/**").permitAll()
                         .requestMatchers("/api/upload/**", "/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/customers/selling").authenticated()
-
-                        // ANA SƏHİFƏ ÜÇÜN BU İKİ SƏTRİ ƏLAVƏ ET:
-                        .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
-                        ).permitAll() // Bu sətirlər hər kəsə icazə verir
-                        .requestMatchers(HttpMethod.PUT, "/api/customers/profile").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/customers/delete").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/customers/profile").authenticated()
-                        .requestMatchers("/api/customers/**").permitAll()
-                        .requestMatchers("/api/customers/delete").permitAll()
+                        ).permitAll()
+
+                        // 2. Qeydiyyat və Kompüter siyahısı üçün xüsusi icazə
+                        // POST /api/customers üçün mütləq permitAll olmalıdır
+                        .requestMatchers(HttpMethod.POST, "/api/customers").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
+
+                        // 3. Login tələb edən yollar
                         .requestMatchers("/api/customers/buy/**").authenticated()
-                        // SecurityConfig.java
+                        .requestMatchers(HttpMethod.GET, "/api/customers/profile").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/customers/profile").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/customers/v1").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/customers/selling").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/computers/{id}").authenticated()
+
+                        // 4. Qalan hər şey üçün login tələb et
                         .anyRequest().authenticated()
                 );
 
