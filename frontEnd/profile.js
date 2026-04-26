@@ -133,11 +133,120 @@ async function getMyComputers() {
         if(summaryArea) summaryArea.style.display = "none";
     }
 }
+// Seçilmiş kompüterin ID-sini yadda saxlamaq üçün global dəyişən
+let targetPcId = null;
 
-function goToCheckout(){
-    window.location.href = "checkout.html"
+// 1. "Sifarişi Tamamla" düyməsinə basanda bu işə düşür
+async function goToCheckout() {
+    // Sənin getMyComputers-də satdığın və ya seçdiyin PC-nin ID-si
+    // Əgər PC siyahısı içindədirsə, ID-ni ordan götürməlisən.
+    // Nümunə: targetPcId = id; 
+    
+    if(!targetPcId) {
+        alert("Zəhmət olmasa bir kompüter seçin!");
+        return;
+    }
+
+    document.getElementById("orderModal").style.display = "flex";
 }
 
+function closeOrderModal() {
+    document.getElementById("orderModal").style.display = "none";
+}
+
+// 1. Seçilmiş ID-ləri yadda saxlayan siyahı (Global olaraq ən yuxarıda qalsın)
+let selectedPcIds = []; 
+
+// 2. Bu funksiya hər dəfə kompüter kartına klikləyəndə işləyəcək
+function toggleSelectPc(id, element) {
+    const index = selectedPcIds.indexOf(id);
+    if (index > -1) {
+        selectedPcIds.splice(index, 1); // Əgər siyahıda varsa, çıxar (seçimi ləğv et)
+        element.style.border = "none"; // Vizual olaraq seçimi ləğv et
+    } else {
+        selectedPcIds.push(id); // Yoxdursa, siyahıya əlavə et
+        element.style.border = "2px solid #238636"; // Seçildiyini göstər (Yaşıl çərçivə)
+    }
+    console.log("Seçilmiş ID-lər:", selectedPcIds);
+    
+    // Əgər nəsə seçilibsə "Checkout" düyməsini göstər, yoxsa gizlə (opsional)
+    updateCheckoutButtonVisibility();
+}
+
+// 3. Sifarişi təsdiqləmək üçün əsas funksiya
+async function confirmOrder() {
+    const phone = document.getElementById("buyer-phone").value;
+    const token = localStorage.getItem('token'); // Tokeni götür
+    
+    if (selectedPcIds.length === 0) {
+        alert("Heç bir kompüter seçilməyib!");
+        return;
+    }
+
+    if (!phone || phone.length < 10) {
+        alert("Düzgün mobil nömrə daxil edin!");
+        return;
+    }
+
+    const idsString = selectedPcIds.join(",");
+
+    try {
+        const response = await fetch(`https://localhost:8080/api/customers/buy?ids=${idsString}&phone=${encodeURIComponent(phone)}`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            alert("Sifarişlər göndərildi! Gmail-inizi yoxlayın.");
+            closeOrderModal();
+            selectedPcIds = []; // Siyahını təmizlə
+            location.reload();
+        } else {
+            alert("Xəta baş verdi. Yenidən yoxlayın.");
+        }
+    } catch (err) {
+        console.error("Xəta:", err);
+        alert("Serverlə bağlantı kəsildi.");
+    }
+}
+function openOrderModal() {
+    if (selectedPcIds.length === 0) {
+        alert("Zəhmət olmasa əvvəlcə bir və ya bir neçə kompüter seçin!");
+        return;
+    }
+    document.getElementById("orderModal").style.display = "flex";
+}
+// 2. Modalda "Təsdiqlə" düyməsinə basanda nömrəni Backend-ə göndərir
+async function confirmOrder() {
+    const phone = document.getElementById("buyer-phone").value;
+    
+    if (phone.length < 10) {
+        alert("Zəhmət olmasa düzgün nömrə daxil edin!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://localhost:8080/api/orders/buy/${targetPcId}?phone=${encodeURIComponent(phone)}`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}` 
+            }
+        });
+
+        if (response.ok) {
+            alert("Sifarişiniz qəbul olundu! Gmail-inizi yoxlayın. Satıcı tezliklə sizinlə əlaqə saxlayacaq.");
+            closeOrderModal();
+            location.reload();
+        } else {
+            alert("Xəta baş verdi. Yenidən yoxlayın.");
+        }
+    } catch (err) {
+        console.error("Sifariş xətası:", err);
+        alert("Serverlə bağlantı kəsildi!");
+    }
+}
 async function getSellingComputers() {
     const area = document.getElementById("selling-area");
     const container = document.getElementById("selling-list");

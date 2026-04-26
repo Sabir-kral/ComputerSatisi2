@@ -96,6 +96,21 @@
             100% { transform: scale(1); }
         }
     </style>
+<div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:#161b22; padding:30px; border-radius:12px; border:1px solid #30363d; width:90%; max-width:400px; text-align:center;">
+        <h2 style="color:white; margin-bottom:15px;">Sifarişi Tamamla</h2>
+        <p style="color:#8b949e; margin-bottom:20px;">Satıcının sizinlə əlaqə saxlaması üçün mobil nömrənizi daxil edin.</p>
+        
+        <input type="text" id="buyer-phone" placeholder="+994 -- --- -- --" 
+               style="width:100%; padding:12px; background:#0d1117; border:1px solid #30363d; border-radius:8px; color:white; font-size:1.1rem; margin-bottom:20px; outline:none;">
+        
+        <div style="display:flex; gap:10px;">
+            <button onclick="confirmOrder()" style="flex:1; padding:12px; background:#238636; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Təsdiqlə</button>
+            <button onclick="closeOrderModal()" style="flex:1; padding:12px; background:transparent; color:#f85149; border:1px solid #f85149; border-radius:8px; cursor:pointer;">Ləğv et</button>
+        </div>
+    </div>
+</div>
+
 
     <script src="profile.js"></script>
 </body>

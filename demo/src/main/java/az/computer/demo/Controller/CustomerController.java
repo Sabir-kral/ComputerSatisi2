@@ -1,14 +1,20 @@
 package az.computer.demo.Controller;
 
+import az.computer.demo.Entity.ComputerEntity;
+import az.computer.demo.Entity.CustomerEntity;
 import az.computer.demo.Request.CustomerRequest;
 import az.computer.demo.Response.ComputerResponse;
 import az.computer.demo.Response.CustomerResponse;
 import az.computer.demo.Response.MessageResponse;
+import az.computer.demo.Service.ComputerService;
 import az.computer.demo.Service.CustomerService;
+import az.computer.demo.Service.MailService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +26,8 @@ import java.util.List;
 public class CustomerController {
 
     private final CustomerService service;
+    private final MailService mailService;
+    private final ComputerService computerService;
 
     @PostMapping
     public MessageResponse register(@RequestBody @Valid CustomerRequest studentRequest) throws MessagingException {
@@ -58,8 +66,11 @@ public class CustomerController {
 
 
 
-    @PostMapping("/buy/{computerId}")
-    public MessageResponse buyComputer(@PathVariable Long computerId){
-        return service.buyComputer(computerId);
+    @PostMapping("/buy")
+    public ResponseEntity<String> buyMultiple(@RequestParam List<Long> ids, @RequestParam String phone) {
+        for (Long id : ids) {
+            service.buyComputer(id, phone);
+        }
+        return ResponseEntity.ok("Bütün sifarişlər üçün maillər göndərildi!");
     }
 }

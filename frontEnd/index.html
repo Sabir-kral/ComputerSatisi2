@@ -226,12 +226,15 @@
                     return;
                 }
 
-                container.innerHTML = data.map(pc => `
-                    <div class="pc-card" onclick="openDetails(${pc.id})">
-                        <h2>${pc.name}</h2>
-                        <p style="color:#58a6ff; font-weight:bold">${pc.price} AZN</p>
-                    </div>
-                `).join('');
+                // Sənin kompüterləri göstərdiyin hissə belə olmalıdır:
+container.innerHTML = computers.map(pc => `
+    <div class="pc-card" onclick="toggleSelectPc(${pc.id}, this)" 
+         style="cursor:pointer; padding:10px; margin:5px; background:#161b22; border-radius:8px; transition: 0.3s;">
+        <img src="${pc.images[0]?.url}" width="100%">
+        <h3>${pc.name}</h3>
+        <p>${pc.price} AZN</p>
+    </div>
+`).join('');
             } catch (err) {
                 console.log("Backend offline:", err);
             }

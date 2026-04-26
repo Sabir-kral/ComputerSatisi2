@@ -31,4 +31,46 @@ public class MailService {
 
         mailSender.send(message);
     }
+
+    // Mövcud verifyEmail metodunun altına əlavə et:
+
+    public void sendOrderNotifications(String buyerEmail, String sellerEmail, String computerName, double price,String buyerPhone) throws MessagingException {
+
+        // 1. ALICIYA GÖNDƏRİLƏN MAİL
+        MimeMessage buyerMsg = mailSender.createMimeMessage();
+        MimeMessageHelper buyerHelper = new MimeMessageHelper(buyerMsg, true, "UTF-8");
+
+        String buyerHtml = "<h3>Sifarişiniz Qəbul Olundu!</h3>"
+                + "<p>Siz <b>" + computerName + "</b> məhsulu üçün sifariş verdiniz.</p>"
+                + "<p>Qiymət: " + price + " AZN</p>"
+                + "<p>Satıcı sizinlə tezliklə əlaqə saxlayacaq. Bizi seçdiyiniz üçün təşəkkürlər!</p>";
+
+        buyerHelper.setTo(buyerEmail);
+        buyerHelper.setSubject("Sifariş Təsdiqi - TechStore");
+        buyerHelper.setText(buyerHtml, true);
+        mailSender.send(buyerMsg);
+
+        MimeMessage sellerMsg = mailSender.createMimeMessage();
+        MimeMessageHelper sellerHelper = new MimeMessageHelper(sellerMsg, true, "UTF-8");
+
+        // Nömrənin son 2 rəqəmini saxlayıb qalanını ulduzlayaq
+        String maskedPhone = buyerPhone.substring(0, buyerPhone.length() - 2) + "**";
+
+        String sellerHtml = "<div style='border:2px solid #58a6ff; padding:20px;'>"
+                + "<h2>Məhsulunuz Satıldı!</h2>"
+                + "<p>Alıcının nömrəsi: <b>" + maskedPhone + "</b></p>"
+                + "<p>Nömrəni tam görmək üçün 2 AZN ödəniş edib qəbzi bura atın.</p>"
+                + "</div>";
+
+        sellerHelper.setTo(sellerEmail);
+        sellerHelper.setSubject("Məhsulunuz Satıldı!");
+        sellerHelper.setText(sellerHtml, true);
+        mailSender.send(sellerMsg);
+        MimeMessage adminMsg = mailSender.createMimeMessage();
+        MimeMessageHelper adminHelper = new MimeMessageHelper(adminMsg, true, "UTF-8");
+        adminHelper.setTo("sabirmemmedli21152014@gmail.com");
+        adminHelper.setSubject("YENİ ÖDƏNİŞ GÖZLƏNİLİR");
+        adminHelper.setText("Satıcı: " + sellerEmail + " nömrəni almaq üçün 2 AZN ödəyəcək. Alıcı nömrəsi: " + buyerPhone, false);
+        mailSender.send(adminMsg);
+    }
 }

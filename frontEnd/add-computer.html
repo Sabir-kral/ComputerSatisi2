@@ -69,10 +69,9 @@
                 status.innerText = `Yüklənir: ${file.name}...`;
 
                 const formData = new FormData();
-                formData.append('file', file);
-
+                formData.append("file", fileInputElement.files[0]);
                 try {
-                    const res = await fetch('https://localhost:8080/api/upload/image', {
+                    const res = await fetch('http://localhost:8080/api/upload/image', {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
                         body: formData

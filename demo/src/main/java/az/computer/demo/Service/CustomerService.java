@@ -88,32 +88,27 @@ public class CustomerService {
     }
 
     @Transactional
-    public MessageResponse buyComputer(Long computerId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        CustomerEntity buyer = customerRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-
+    public String buyComputer(Long computerId, String buyerPhone) {
         ComputerEntity computer = computerRepo.findById(computerId)
-                .orElseThrow(() -> new RuntimeException("Computer not found"));
+                .orElseThrow(() -> new RuntimeException("Kompüter tapılmadı!"));
 
-        if (buyer.getBoughtComputers().contains(computer)) {
-            throw new RuntimeException("Siz bu kompüteri artıq almısınız.");
+        CustomerEntity seller = computer.getSellers().get(0);
+        String buyerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        try {
+            // MailService-ə nömrəni də göndəririk ki, yadda saxlasın və ya sənə xəbər versin
+            mailService.sendOrderNotifications(
+                    buyerEmail,
+                    seller.getEmail(),
+                    computer.getName(),
+                    computer.getPrice(),
+                    buyerPhone // Bu nömrəni metodun arqumentlərinə əlavə et
+            );
+
+            return "Uğurlu! Satıcıya bildiriş göndərildi.";
+        } catch (MessagingException e) {
+            return "Xəta baş verdi.";
         }
-
-        if (computer.getSellers() != null && !computer.getSellers().isEmpty()) {
-            for (CustomerEntity seller : computer.getSellers()) {
-                seller.getSellingComputers().remove(computer);
-                customerRepo.save(seller);
-            }
-        }
-
-        buyer.getBoughtComputers().add(computer);
-        customerRepo.save(buyer);
-
-        MessageResponse response = new MessageResponse();
-        response.setMessage("Computer bought successfully");
-        logService.add("Customer " + buyer.getEmail() + " bought PC ID: " + computerId, "CUSTOMER_BOUGHT");
-        return response;
     }
 
     @Transactional
