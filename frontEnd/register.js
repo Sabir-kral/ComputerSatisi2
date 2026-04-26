@@ -1,43 +1,45 @@
-document.getElementById('register-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const name = document.getElementById('name').value;
-    const surname = document.getElementById('surname').value;
-    const email = document.getElementById('reg-email').value;
-    const password = document.getElementById('reg-password').value;
+document.addEventListener("DOMContentLoaded", () => {
+    const registerForm = document.getElementById("register-form");
 
-    // ADD THIS - check values before sending
-    console.log("name:", name);
-    console.log("surname:", surname);
-    console.log("email:", email);
-    console.log("password:", password);
+    if (registerForm) {
+        registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-    if (!email) {
-        alert("Email boşdur!");
-        return;
-    }
+            // Sənin HTML ID-lərinə uyğun məlumatları götürürük
+            const userData = {
+                name: document.getElementById('name').value,
+                surname: document.getElementById('surname').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-password').value
+            };
 
-    try {
-        const response = await fetch('https://localhost:8080/api/customers', { 
-            method: 'POST',
-            mode:"cors",
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, surname, email, password })
+            console.log("Qeydiyyat üçün göndərilir:", userData);
+
+            try {
+                const response = await fetch("https://localhost:8080/api/customers", {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    const text = await response.text();
+                    // Əgər backend JSON qaytarsa onu parse edirik
+                    const data = text ? JSON.parse(text) : {};
+                    
+                    alert("Təbriklər! Qeydiyyat uğurla tamamlandı.");
+                    window.location.href = "login.html";
+                } else {
+                    const errorMsg = await response.text();
+                    console.error("Backend xətası:", response.status, errorMsg);
+                    alert("Xəta baş verdi: " + response.status + " (Spring Security-ni yoxlayın)");
+                }
+            } catch (err) {
+                console.error("Şəbəkə xətası:", err);
+                alert("Serverlə bağlantı kəsildi. HTTPS icazəsi verdiyinizdən əmin olun!");
+            }
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            alert("Qeydiyyat uğurludur! Gmailinizə gələn kodu daxil edin.");
-            localStorage.setItem("pendingEmail", email);
-            console.log("Saved email to localStorage:", email);
-            window.location.href = "verify.html";
-        } else {
-            alert("Xəta: " + (data.message || "Bu məlumatlarla qeydiyyat mümkün olmadı!"));
-        }
-
-    } catch (err) {
-        console.error("Şəbəkə xətası:", err);
-        alert("Serverə qoşulmaq mümkün olmadı!");
     }
 });

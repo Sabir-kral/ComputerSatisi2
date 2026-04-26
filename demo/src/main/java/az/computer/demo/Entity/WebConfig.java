@@ -18,13 +18,15 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
+                // "*" yerinə konkret frontend ünvanlarını yazırıq
                 .allowedOrigins(
                         "http://localhost:3000",
                         "http://127.0.0.1:3000",
-                        "http://127.0.0.1:5500" // Hələ də Live Server istifadə edirsənsə bu qalsın
+                        "http://127.0.0.1:5500",
+                        "https://localhost:3000"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(true); // Bu true olanda yuxarıda "*" ola bilməz
     }
 }
