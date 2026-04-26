@@ -79,7 +79,7 @@
         }
     });
 
-    async function processPayment(tokenId, address, email, pc) {
+   async function processPayment(tokenId, address, email, pc) {
     const orderRequest = {
         email: email,
         address: address,
@@ -93,16 +93,16 @@
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true' // NGROK FIX
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify(orderRequest)
         });
 
-        const data = await response.json();
         if (response.ok) {
             alert("Ödəniş uğurludur!");
             window.location.href = "index.html";
         } else {
+            const data = await response.json();
             alert("Xəta: " + data.message);
         }
     } catch (err) { alert("Ödəniş serverinə qoşulmadı."); }

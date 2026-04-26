@@ -90,54 +90,55 @@
             80%  { transform: scale(0.98) rotate(1deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
+
         .slider-wrapper {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    max-width: 450px;
-}
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 450px;
+        }
 
-.slider-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(88, 166, 255, 0.8);
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 10;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.slider-btn:hover { background: var(--blue); transform: translateY(-50%) scale(1.1); }
-.left-btn { left: 5px; }
-.right-btn { right: 5px; }
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(88, 166, 255, 0.8);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .slider-btn:hover { background: var(--blue); transform: translateY(-50%) scale(1.1); }
+        .left-btn { left: 5px; }
+        .right-btn { right: 5px; }
 
-#sliderImg {
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
+        #sliderImg {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
 
-.slider-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 12px;
-}
-.dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #30363d;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.dot.active { background: var(--blue); transform: scale(1.3); }
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #30363d;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .dot.active { background: var(--blue); transform: scale(1.3); }
 
         .detail-content {
             display: flex;
@@ -194,11 +195,12 @@
     </div>
 
     <script>
+        // YENİLƏNMİŞ LİNK
         const API_BASE = "https://denatured-depress-munchkin.ngrok-free.dev/api";
 
         function checkAuth() {
-            const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
-            const email = localStorage.getItem("email") || localStorage.getItem("userEmail");
+            const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
+            const email = localStorage.getItem("userEmail") || localStorage.getItem("email");
             const loginBtn = document.getElementById("loginBtn");
             const userSection = document.getElementById("userSection");
             const userGmail = document.getElementById("userGmail");
@@ -215,144 +217,125 @@
             }
         }
 
-      // index.html daxilindəki script hissəsi
+        async function loadComputers() {
+            try {
+                const res = await fetch(`${API_BASE}/customers/v2`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (!res.ok) throw new Error("Server xətası");
+                const data = await res.json();
+                const container = document.getElementById("computer-container");
 
-async function loadComputers() {
-    try {
-        const res = await fetch(`${API_BASE}/customers/v2`, {
-            headers: { 'ngrok-skip-browser-warning': 'true' } // NGROK FIX
-        });
-        if (!res.ok) throw new Error("Server xətası");
-        const data = await res.json();
-        const container = document.getElementById("computer-container");
+                if (!data || data.length === 0) {
+                    container.innerHTML = "<p>Hal-hazırda heç bir kompüter yoxdur.</p>";
+                    return; 
+                }
 
-        if (!data || data.length === 0) {
-            container.innerHTML = "<p>Hal-hazırda heç bir kompüter yoxdur.</p>";
-            return;
+                container.innerHTML = data.map(pc => `
+                    <div class="pc-card" onclick="openDetails(${pc.id})">
+                        <h2>${pc.name}</h2>
+                        <p style="color:#58a6ff; font-weight:bold">${pc.price} AZN</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Backend xətası:", err);
+            }
         }
-
-        container.innerHTML = data.map(pc => `
-            <div class="pc-card" onclick="openDetails(${pc.id})">
-                <h2>${pc.name}</h2>
-                <p style="color:#58a6ff; font-weight:bold">${pc.price} AZN</p>
-            </div>
-        `).join('');
-    } catch (err) {
-        console.error("Backend xətası:", err);
-    }
-}
-
-
 
         async function openDetails(id) {
-    const overlay = document.getElementById("detailOverlay");
-    const content = document.getElementById("detailContent");
-    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+            const overlay = document.getElementById("detailOverlay");
+            const content = document.getElementById("detailContent");
+            const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
 
-    overlay.classList.remove("active");
-    void overlay.offsetWidth;
-    overlay.classList.add("active");
+            overlay.classList.remove("active");
+            void overlay.offsetWidth;
+            overlay.classList.add("active");
 
-    content.innerHTML = "<h1 style='color:white; text-align:center;'>Yüklənir...</h1>";
-    content.style.animation = "none";
+            content.innerHTML = "<h1 style='color:white; text-align:center;'>Yüklənir...</h1>";
+            content.style.animation = "none";
 
-    try {
-        const res = await fetch(`${API_BASE}/computers/${id}`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` ,
-                'ngrok-skip-browser-warning': 'true'
-            } : {},        });
-        const pc = await res.json();
-        const images = pc.imageLinks && pc.imageLinks.length > 0
-            ? pc.imageLinks
-            : ['https://via.placeholder.com/450x300?text=No+Image'];
+            try {
+                const res = await fetch(`${API_BASE}/computers/${id}`, {
+                    headers: { 
+                        'ngrok-skip-browser-warning': 'true',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    }
+                });
+                const pc = await res.json();
+                const images = pc.imageLinks && pc.imageLinks.length > 0
+                    ? pc.imageLinks
+                    : ['https://via.placeholder.com/450x300?text=No+Image'];
 
-        content.innerHTML = `
-            <div class="left-side">
-                <div class="slider-wrapper">
-                    ${images.length > 1 ? `<button class="slider-btn left-btn" onclick="slideImg(-1)">&#8592;</button>` : ''}
-                    <img id="sliderImg" src="${images[0]}" class="detail-img" onerror="this.src='https://via.placeholder.com/450x300?text=No+Image'">
-                    ${images.length > 1 ? `<button class="slider-btn right-btn" onclick="slideImg(1)">&#8594;</button>` : ''}
-                    ${images.length > 1 ? `<div class="slider-dots" id="sliderDots"></div>` : ''}
-                </div>
-                <h1 class="detail-name">${pc.name}</h1>
-            </div>
-            <div class="right-side">
-                <div class="detail-desc">${pc.description}</div>
-                <div class="detail-price">${pc.price} AZN</div>
-                <div style="display:flex; gap:15px; margin-top:25px;">
-                    <button class="back-btn" onclick="closeDetails()">← GERİ</button>
-                    <button class="back-btn" style="background:#49fb35; color:#000;" onclick="buyComputer(${pc.id})">İNDİ AL</button>
-                </div>
-            </div>
-        `;
+                content.innerHTML = `
+                    <div class="left-side">
+                        <div class="slider-wrapper">
+                            ${images.length > 1 ? `<button class="slider-btn left-btn" onclick="slideImg(-1)">&#8592;</button>` : ''}
+                            <img id="sliderImg" src="${images[0]}" class="detail-img" onerror="this.src='https://via.placeholder.com/450x300?text=No+Image'">
+                            ${images.length > 1 ? `<button class="slider-btn right-btn" onclick="slideImg(1)">&#8594;</button>` : ''}
+                            ${images.length > 1 ? `<div class="slider-dots" id="sliderDots"></div>` : ''}
+                        </div>
+                        <h1 class="detail-name">${pc.name}</h1>
+                    </div>
+                    <div class="right-side">
+                        <div class="detail-desc">${pc.description}</div>
+                        <div class="detail-price">${pc.price} AZN</div>
+                        <div style="display:flex; gap:15px; margin-top:25px;">
+                            <button class="back-btn" onclick="closeDetails()">← GERİ</button>
+                            <button class="back-btn" style="background:#49fb35; color:#000;" onclick="buyComputer(${pc.id})">İNDİ AL</button>
+                        </div>
+                    </div>
+                `;
 
-        if (images.length > 1) {
-            createSlider(images);
+                if (images.length > 1) createSlider(images);
+
+                void content.offsetWidth;
+                content.style.animation = "cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards";
+                setupDrag(content);
+
+            } catch (e) {
+                console.error(e);
+                closeDetails();
+            }
         }
 
-        void content.offsetWidth;
-        content.style.animation = "cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards";
-        setupDrag(content);
+        function createSlider(images) {
+            const dotsContainer = document.getElementById("sliderDots");
+            dotsContainer.innerHTML = images.map((_, i) =>
+                `<span class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></span>`
+            ).join('');
 
-    } catch (e) {
-        console.error(e);
-        closeDetails();
-    }
-}
+            window._sliderImages = images;
+            window._sliderCurrent = 0;
 
-function createSlider(images) {
-    let current = 0;
-    const img = document.getElementById("sliderImg");
-    const dotsContainer = document.getElementById("sliderDots");
+            window.slideImg = function(dir) {
+                window._sliderCurrent = (window._sliderCurrent + dir + images.length) % images.length;
+                updateSlider();
+            };
 
-    // Create dots
-    dotsContainer.innerHTML = images.map((_, i) =>
-        `<span class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></span>`
-    ).join('');
+            window.goToSlide = function(index) {
+                window._sliderCurrent = index;
+                updateSlider();
+            };
 
-    // Expose functions globally so onclick works
-    window._sliderImages = images;
-    window._sliderCurrent = 0;
+            function updateSlider() {
+                const img = document.getElementById("sliderImg");
+                const dots = document.querySelectorAll(".dot");
+                img.style.opacity = "0";
+                setTimeout(() => {
+                    img.src = window._sliderImages[window._sliderCurrent];
+                    img.style.opacity = "1";
+                }, 200);
+                dots.forEach((d, i) => d.classList.toggle("active", i === window._sliderCurrent));
+            }
 
-    window.slideImg = function(dir) {
-        window._sliderCurrent = (window._sliderCurrent + dir + images.length) % images.length;
-        updateSlider();
-    };
+            if (window._autoSlide) clearInterval(window._autoSlide);
+            window._autoSlide = setInterval(() => window.slideImg(1), 3000);
+        }
 
-    window.goToSlide = function(index) {
-        window._sliderCurrent = index;
-        updateSlider();
-    };
-
-    function updateSlider() {
-        const img = document.getElementById("sliderImg");
-        const dots = document.querySelectorAll(".dot");
-
-        img.style.opacity = "0";
-        img.style.transform = "scale(0.95)";
-
-        setTimeout(() => {
-            img.src = window._sliderImages[window._sliderCurrent];
-            img.style.opacity = "1";
-            img.style.transform = "scale(1)";
-        }, 200);
-
-        dots.forEach((d, i) => {
-            d.classList.toggle("active", i === window._sliderCurrent);
-        });
-    }
-
-    // Auto slide every 3 seconds
-    if (window._autoSlide) clearInterval(window._autoSlide);
-    window._autoSlide = setInterval(() => {
-        window.slideImg(1);
-    }, 3000);
-}
-function closeDetails() {
-    const overlay = document.getElementById("detailOverlay");
-    overlay.classList.remove("active");
-    if (window._autoSlide) clearInterval(window._autoSlide);
-}
+        function closeDetails() {
+            document.getElementById("detailOverlay").classList.remove("active");
+            if (window._autoSlide) clearInterval(window._autoSlide);
+        }
 
         function setupDrag(content) {
             let isDragging = false;
@@ -371,78 +354,55 @@ function closeDetails() {
                 if (!isDragging) return;
                 currentX = e.clientX - startX;
                 currentY = e.clientY - startY;
-
-                const maxX = (window.innerWidth - content.offsetWidth) / 2;
-                const maxY = (window.innerHeight - content.offsetHeight) / 2;
-
-                let hitEdge = false;
-                if (Math.abs(currentX) >= maxX * 0.85) {
-                    currentX = Math.sign(currentX) * maxX * 0.85;
-                    hitEdge = true;
-                }
-                if (Math.abs(currentY) >= maxY * 0.85) {
-                    currentY = Math.sign(currentY) * maxY * 0.85;
-                    hitEdge = true;
-                }
-
-                if (hitEdge) {
-                    content.style.animation = "none";
-                    void content.offsetWidth;
-                    content.style.animation = "wobble 0.4s ease forwards";
-                } else {
-                    content.style.transform = `translate(${currentX}px, ${currentY}px)`;
-                }
+                content.style.transform = `translate(${currentX}px, ${currentY}px)`;
             };
 
             document.onmouseup = () => {
                 if (!isDragging) return;
                 isDragging = false;
                 content.style.cursor = "grab";
-                content.style.animation = "none";
                 content.style.transition = "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
                 content.style.transform = "translate(0, 0)";
-                currentX = 0;
-                currentY = 0;
-                setTimeout(() => { content.style.transition = ""; }, 500);
+                currentX = 0; currentY = 0;
+                setTimeout(() => content.style.transition = "", 500);
             };
         }
 
         async function buyComputer(computerId) {
-    const token = localStorage.getItem("accessToken"); // Login-dən gələn token
+            const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
 
-    if (!token) {
-        alert("Giriş etməlisiniz!");
-        window.location.href = "login.html";
-        return;
-    }
-
-    try {
-        const res = await fetch(`${API_BASE}/customers/buy/${computerId}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true' // NGROK FIX
+            if (!token) {
+                alert("Giriş etməlisiniz!");
+                window.location.href = "login.html";
+                return;
             }
-        });
 
-        if (res.ok) {
-            // Ödəniş səhifəsi üçün bütün PC detallarını götürək (Swagger-dəki kimi)
-            const pcRes = await fetch(`${API_BASE}/computers/${computerId}`, {
-                headers: { 'ngrok-skip-browser-warning': 'true' }
-            });
-            const pcData = await pcRes.json();
-            
-            localStorage.setItem("selectedPC", JSON.stringify(pcData));
-            alert("Sifariş səhifəsinə yönləndirilirsiniz...");
-            window.location.href = "checkout.html";
-        } else {
-            alert("Xəta: Alış baş tutmadı.");
+            try {
+                const res = await fetch(`${API_BASE}/customers/buy/${computerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+
+                if (res.ok) {
+                    const pcRes = await fetch(`${API_BASE}/computers/${computerId}`, {
+                        headers: { 'ngrok-skip-browser-warning': 'true' }
+                    });
+                    const pcData = await pcRes.json();
+                    localStorage.setItem("selectedPC", JSON.stringify(pcData));
+                    alert("Sifariş səhifəsinə yönləndirilirsiniz...");
+                    window.location.href = "checkout.html";
+                } else {
+                    alert("Xəta: Alış baş tutmadı.");
+                }
+            } catch (err) {
+                alert("Serverlə bağlantı kəsildi!");
+            }
         }
-    } catch (err) {
-        alert("Serverlə bağlantı kəsildi!");
-    }
-}
+
         window.onload = () => {
             checkAuth();
             loadComputers();
