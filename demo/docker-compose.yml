@@ -9,16 +9,16 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3306:3306"
+      - "3307:3306"  # Xarici portu 3307 etdik ki, serverdəki digər MySQL ilə toqquşmasın
     networks:
       - computersatisi-net
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
 
   computersatisi-app:
     build: .
@@ -30,6 +30,7 @@ services:
     env_file:
       - .env
     environment:
+      # Burada 'db' xidmət adını istifadə edirik, Docker daxilində port həmişə 3306-dır
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
@@ -42,11 +43,13 @@ services:
       - computersatisi-net
     volumes:
       - ./uploads:/app/uploads
-      - ./computer-sale.p12:/app/config/computer-sale.p12  # Sertifikatı bağlayırıq
+      - ./computer-sale.p12:/app/config/computer-sale.p12
 
   computersatisi-frontend:
-    build: /home/root123/ComputerSatisi2/frontEnd
+    build:
+      context: ./frontEnd
     container_name: computersatisi-frontend
+  # ... digər tənzimləmələr
     ports:
       - "3000:80"
     restart: unless-stopped
@@ -55,9 +58,9 @@ services:
     networks:
       - computersatisi-net
     environment:
-      # SSH tunel və SSL istifadə etdiyin üçün artıq https və localhost istifadə edə bilərsən
-      - REACT_APP_API_URL=https://localhost:8080
-      - NEXT_PUBLIC_API_URL=https://localhost:8080
+      # Docker daxilində frontend backend-i konteyner adı ilə tanımalıdır
+      - REACT_APP_API_URL=http://computersatisi-backend:8080
+      - NEXT_PUBLIC_API_URL=http://computersatisi-backend:8080
 
 networks:
   computersatisi-net:
