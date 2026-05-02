@@ -1,4 +1,4 @@
-name: CI/CD main
+name: ComputerSatisi2 CI/CD
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,33 +21,31 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
-        working-directory: ./bookshopping
+        # Əgər Java kodların birbaşa ana qovluqdadırsa, 'working-directory' hissəsinə ehtiyac yoxdur.
 
       - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker Image
-        run: docker build -t agilazizovf/bookshopping-dev:latest .
-        working-directory: ./bookshopping
-
+        run: docker build -t sabirkral/computersatisi-dev:latest .
 
       - name: Push Docker Image
-        run: docker push agilazizovf/bookshopping-dev:latest
-        working-directory: ./bookshopping
+        run: docker push sabirkral/computersatisi-dev:latest
 
   deploy:
-    needs: build-and-test  # Deploy only if the 'build-and-test' job succeeds
+    needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Ubuntu Server via SSH
-        uses: appleboy/ssh-action@v0.1.7
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }} # Bura mütləq o məşhur tireli sətirlərlə (BEGIN/END) olan key olmalıdır
           script: |
-            cd /home/ubuntu/demobookshopping/files/backend
-            docker-compose -f docker-compose.dev.yml down
-            docker-compose -f docker-compose.dev.yml pull
-            docker-compose -f docker-compose.dev.yml up -d
+            cd ~/ComputerSatisi2
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d
+            docker image prune -f
