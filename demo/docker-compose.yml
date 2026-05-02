@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # MySQL Baza Servisi
   db:
     image: mysql:8.0
     container_name: computersatisi-db
@@ -9,7 +10,7 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3307:3306"  # Xarici portu 3307 etdik ki, serverdəki digər MySQL ilə toqquşmasın
+      - "3307:3306" # Xarici qoşulma üçün 3307, daxili üçün 3306
     networks:
       - computersatisi-net
     volumes:
@@ -20,6 +21,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # Spring Boot Backend Servisi
   computersatisi-app:
     build: .
     container_name: computersatisi-backend
@@ -30,7 +32,7 @@ services:
     env_file:
       - .env
     environment:
-      # Burada 'db' xidmət adını istifadə edirik, Docker daxilində port həmişə 3306-dır
+      # Docker daxili şəbəkəsində 'db' adı ilə 3306 portuna bağlanır
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
@@ -45,11 +47,11 @@ services:
       - ./uploads:/app/uploads
       - ./computer-sale.p12:/app/config/computer-sale.p12
 
+  # Frontend (React/Next.js) Servisi
   computersatisi-frontend:
     build:
       context: ./frontEnd
     container_name: computersatisi-frontend
-  # ... digər tənzimləmələr
     ports:
       - "3000:80"
     restart: unless-stopped
@@ -58,7 +60,7 @@ services:
     networks:
       - computersatisi-net
     environment:
-      # Docker daxilində frontend backend-i konteyner adı ilə tanımalıdır
+      # API sorğuları üçün backend konteynerinin adını istifadə edirik
       - REACT_APP_API_URL=http://computersatisi-backend:8080
       - NEXT_PUBLIC_API_URL=http://computersatisi-backend:8080
 
