@@ -3,109 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ödəniş və Çatdırılma | TechStore</title>
-    <script src="https://js.stripe.com/v3/"></script>
+    <title>Sifariş | TechStore</title>
     <style>
-        body { background-color: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .checkout-card { background: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h2 { color: #f87171; text-align: center; margin-bottom: 25px; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
-        #card-element { background: white; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-        button { width: 100%; padding: 14px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #be123c; }
-        button:disabled { background: #475569; cursor: not-allowed; }
-        #result-message { text-align: center; margin-top: 15px; font-size: 14px; }
+        body {
+            background-color: #0d1117;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .checkout-card {
+            background: #161b22;
+            padding: 40px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid #30363d;
+        }
+        h2 { color: #58a6ff; text-align: center; margin-bottom: 10px; }
+        .product-info {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-left: 4px solid #58a6ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        .product-info h3 { color: #58a6ff; margin: 0 0 5px 0; }
+        .product-info p { color: #49fb35; font-size: 1.3rem; font-weight: bold; margin: 0; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: white;
+            box-sizing: border-box;
+            font-size: 1rem;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        input:focus { border-color: #58a6ff; outline: none; }
+        input::placeholder { color: #8b949e; }
+        .btn-confirm {
+            width: 100%;
+            padding: 14px;
+            background: #49fb35;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 10px;
+        }
+        .btn-confirm:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-confirm:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; transform: none; }
+        .btn-back {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            color: #f87171;
+            border: 1px solid #f87171;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-back:hover { background: #f87171; color: #000; }
+        #result-message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        .info-text {
+            color: #8b949e;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
 <div class="checkout-card">
-    <h2>Sifarişi Tamamla</h2>
+    <h2>🛒 Sifarişi Tamamla</h2>
     
-    <div id="product-info" style="margin-bottom: 15px; font-size: 14px; color: #94a3b8;"></div>
+    <div id="product-info" class="product-info" style="display:none;">
+        <h3 id="pc-name"></h3>
+        <p id="pc-price"></p>
+    </div>
 
-    <input type="text" id="full-name" placeholder="Ad və Soyad">
-    <input type="email" id="email" placeholder="E-mail ünvanınız">
-    <input type="text" id="address" placeholder="Çatdırılma ünvanı (Küçə, Bina, Mənzil)">
+    <p class="info-text">Telefon nömrəniz satıcıya göndəriləcək ki, sizinlə əlaqə saxlasın.</p>
+
+    <input type="tel" id="phone" placeholder="Telefon nömrəniz (məs: +994501234567)">
     
-    <div id="card-element"></div>
+    <button class="btn-confirm" id="confirm-btn" onclick="confirmOrder()">✅ Sifarişi Təsdiqlə</button>
+    <button class="btn-back" onclick="history.back()">← Geri</button>
     
-    <button id="pay-button">Ödənişi İndi Et</button>
     <div id="result-message"></div>
 </div>
 
 <script>
-    // 1. Stripe-ı başlat (Öz public key-ini bura yaz)
-    const stripe = Stripe('pk_test_51TQQNYJDXQulQe9FVbHvOLxPDAJOSG9twt7JMK6AsyZwcPR8RAoNQWE64jQsYCQUw0b948W4vx4JzxRgALrTjm7i003julvcXt');
-    const elements = stripe.elements();
-    
-    // Kart elementini yarat və dizayn ver
-    const card = elements.create('card', {
-        style: {
-            base: { fontSize: '16px', color: '#32325d' }
-        }
-    });
-    card.mount('#card-element');
-
-    // Səhifə yüklənəndə hansı kompüteri aldığımızı yoxlayaq (Localstorage-dan)
-    const selectedPC = JSON.parse(localStorage.getItem("selectedPC"));
-    if(selectedPC) {
-        document.getElementById('product-info').innerText = `Məhsul: ${selectedPC.name} | Qiymət: ${selectedPC.price} AZN`;
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        alert("Zəhmət olmasa giriş edin!");
+        location.href = 'login.html';
     }
 
-    const payButton = document.getElementById('pay-button');
+    const selectedPC = JSON.parse(localStorage.getItem("selectedPC"));
+    if (selectedPC) {
+        document.getElementById('product-info').style.display = 'block';
+        document.getElementById('pc-name').innerText = selectedPC.name;
+        document.getElementById('pc-price').innerText = selectedPC.price + ' AZN';
+    } else {
+        location.href = 'index.html';
+    }
 
-    payButton.addEventListener('click', async () => {
-        payButton.disabled = true;
-        const address = document.getElementById('address').value;
-        const email = document.getElementById('email').value;
+    async function confirmOrder() {
+        const phone = document.getElementById('phone').value.trim();
+        const result = document.getElementById('result-message');
+        const btn = document.getElementById('confirm-btn');
 
-        if(!address || !email) {
-            alert("Zəhmət olmasa ünvan və email daxil edin!");
-            payButton.disabled = false;
+        if (!phone) {
+            result.style.color = '#f87171';
+            result.innerText = 'Zəhmət olmasa telefon nömrənizi daxil edin!';
             return;
         }
 
-        // 2. Stripe Token yarat
-        const {token, error} = await stripe.createToken(card);
+        btn.disabled = true;
+        btn.innerText = 'Göndərilir...';
 
-        if (error) {
-            document.getElementById('result-message').innerText = error.message;
-            document.getElementById('result-message').style.color = "#f87171";
-            payButton.disabled = false;
-        } else {
-            // 3. Token və məlumatları Backend-ə göndər
-            processPayment(token.id, address, email, selectedPC);
+        try {
+            // Step 1 — Buy computer (saves to bought list, deletes from system)
+            const buyRes = await fetch(`http://localhost:8080/api/customers/buy/${selectedPC.id}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!buyRes.ok) {
+                const err = await buyRes.json();
+                result.style.color = '#f87171';
+                result.innerText = 'Xəta: ' + (err.message || 'Alış baş tutmadı.');
+                btn.disabled = false;
+                btn.innerText = '✅ Sifarişi Təsdiqlə';
+                return;
+            }
+
+            // Step 2 — Send email with phone to seller
+            const contactRes = await fetch(`http://localhost:8080/api/customers/contact/${selectedPC.id}?phone=${encodeURIComponent(phone)}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            localStorage.removeItem('selectedPC');
+            result.style.color = '#49fb35';
+            result.innerText = '✅ Sifariş uğurlu oldu! Satıcı sizinlə əlaqə saxlayacaq.';
+            btn.innerText = 'Uğurlu!';
+
+            setTimeout(() => { location.href = 'index.html'; }, 2000);
+
+        } catch (err) {
+            result.style.color = '#f87171';
+            result.innerText = 'Bağlantı xətası!';
+            btn.disabled = false;
+            btn.innerText = '✅ Sifarişi Təsdiqlə';
         }
-    });
-
-   async function processPayment(tokenId, address, email, pc) {
-    const orderRequest = {
-        email: email,
-        address: address,
-        computerId: pc.id,
-        amount: pc.price,
-        stripeToken: tokenId
-    };
-
-    try {
-        const response = await fetch('https://localhost:8080/api/payments/charge', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderRequest)
-        });
-
-        if (response.ok) {
-            alert("Ödəniş uğurludur!");
-            window.location.href = "index.html";
-        } else {
-            const data = await response.json();
-            alert("Xəta: " + data.message);
-        }
-    } catch (err) { alert("Ödəniş serverinə qoşulmadı."); }
-}
+    }
 </script>
 
 </body>

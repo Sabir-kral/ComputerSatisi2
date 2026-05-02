@@ -77,22 +77,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // BÜTÜN origin-lərə icazə veririk
-        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
-
-        // BÜTÜN metodlara icazə veririk
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-
-        // ÇOX VACİB: ngrok-skip-browser-warning və digər başlıqlara icazə veririk
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "X-Requested-With",
-                "ngrok-skip-browser-warning"
-        ));
-
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // use pattern instead of origin
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

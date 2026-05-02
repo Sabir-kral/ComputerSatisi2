@@ -88,28 +88,76 @@ public class CustomerService {
     }
 
     @Transactional
-    public String buyComputer(Long computerId, String buyerPhone) {
+    public MessageResponse buyComputer(Long computerId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        CustomerEntity buyer = customerRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
         ComputerEntity computer = computerRepo.findById(computerId)
-                .orElseThrow(() -> new RuntimeException("Kompüter tapılmadı!"));
+                .orElseThrow(() -> new RuntimeException("Computer not found"));
 
-        CustomerEntity seller = computer.getSellers().get(0);
-        String buyerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        try {
-            // MailService-ə nömrəni də göndəririk ki, yadda saxlasın və ya sənə xəbər versin
-            mailService.sendOrderNotifications(
-                    buyerEmail,
-                    seller.getEmail(),
-                    computer.getName(),
-                    computer.getPrice(),
-                    buyerPhone // Bu nömrəni metodun arqumentlərinə əlavə et
-            );
-
-            return "Uğurlu! Satıcıya bildiriş göndərildi.";
-        } catch (MessagingException e) {
-            return "Xəta baş verdi.";
+        if (buyer.getBoughtComputers().contains(computer)) {
+            throw new RuntimeException("Siz bu kompüteri artıq almısınız.");
         }
+
+        // Remove from all sellers
+        if (computer.getSellers() != null && !computer.getSellers().isEmpty()) {
+            for (CustomerEntity seller : computer.getSellers()) {
+                seller.getSellingComputers().remove(computer);
+                customerRepo.save(seller);
+            }
+        }
+
+        // Remove from all buyers (just in case)
+        if (computer.getBuyers() != null && !computer.getBuyers().isEmpty()) {
+            for (CustomerEntity b : computer.getBuyers()) {
+                b.getBoughtComputers().remove(computer);
+                customerRepo.save(b);
+            }
+        }
+
+        // Add to buyer's bought list
+        buyer.getBoughtComputers().add(computer);
+        customerRepo.save(buyer);
+
+        // Delete computer from system
+        computerRepo.delete(computer);
+
+        logService.add("Customer " + buyer.getEmail() + " bought and deleted PC ID: " + computerId, "CUSTOMER_BOUGHT");
+
+        MessageResponse response = new MessageResponse();
+        response.setMessage("Computer bought successfully");
+        return response;
     }
+    public MessageResponse contactSeller(Long computerId, String phone) throws MessagingException {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        CustomerEntity buyer = customerRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        ComputerEntity computer = computerRepo.findById(computerId)
+                .orElseThrow(() -> new RuntimeException("Computer not found"));
+
+        String sellerEmail = null;
+        if (computer.getSellers() != null && !computer.getSellers().isEmpty()) {
+            sellerEmail = computer.getSellers().get(0).getEmail();
+        }
+
+        mailService.sendOrderNotifications(
+                buyer.getEmail(),    // buyerEmail
+                sellerEmail,         // sellerEmail
+                computer.getName(),  // computerName
+                computer.getPrice(), // price
+                phone                // buyerPhone
+        );
+
+        logService.add("Customer " + buyer.getEmail() + " contacted seller for PC ID: " + computerId, "CUSTOMER_CONTACTED_SELLER");
+
+        MessageResponse response = new MessageResponse();
+        response.setMessage("Satıcıya bildiriş göndərildi");
+        return response;
+    }
+
+
 
     @Transactional
     public MessageResponse updateCustomerProfile(CustomerRequest request, String email) {

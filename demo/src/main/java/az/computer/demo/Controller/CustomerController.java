@@ -48,6 +48,11 @@ public class CustomerController {
     public CustomerResponse profile(){
         return service.profile();
     }
+
+    @PostMapping("/contact/{computerId}")
+    public MessageResponse contactSeller(@PathVariable Long computerId, @RequestParam String phone) throws MessagingException {
+        return service.contactSeller(computerId, phone);
+    }
     @GetMapping("/v1")
     @Operation(summary = "Get bought pc")
     public List<ComputerResponse> getAllBought(){
@@ -67,10 +72,8 @@ public class CustomerController {
 
 
     @PostMapping("/buy")
-    public ResponseEntity<String> buyMultiple(@RequestParam List<Long> ids, @RequestParam String phone) {
-        for (Long id : ids) {
-            service.buyComputer(id, phone);
-        }
-        return ResponseEntity.ok("Bütün sifarişlər üçün maillər göndərildi!");
+    public MessageResponse buyComputer(@RequestParam Long id) {
+
+        return service.buyComputer(id);
     }
 }

@@ -218,7 +218,9 @@
 
         async function loadComputers() {
     try {
-        const response = await fetch("http://localhost:8080/api/computers"); // Sənin API ünvanın
+        const response = await fetch("http://localhost:8080/api/computers",{
+            credentials: 'include'
+        }); // Sənin API ünvanın
         
         if (!response.ok) {
             throw new Error("Serverdən cavab alınmadı");
@@ -259,32 +261,56 @@
 
     try {
         const res = await fetch(`${API_BASE}/computers/${id}`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            credentials: 'include'
         });
         const pc = await res.json();
         const images = pc.imageLinks && pc.imageLinks.length > 0
             ? pc.imageLinks
             : ['https://via.placeholder.com/450x300?text=No+Image'];
 
-        content.innerHTML = `
-            <div class="left-side">
-                <div class="slider-wrapper">
-                    ${images.length > 1 ? `<button class="slider-btn left-btn" onclick="slideImg(-1)">&#8592;</button>` : ''}
-                    <img id="sliderImg" src="${images[0]}" class="detail-img" onerror="this.src='https://via.placeholder.com/450x300?text=No+Image'">
-                    ${images.length > 1 ? `<button class="slider-btn right-btn" onclick="slideImg(1)">&#8594;</button>` : ''}
-                    ${images.length > 1 ? `<div class="slider-dots" id="sliderDots"></div>` : ''}
-                </div>
-                <h1 class="detail-name">${pc.name}</h1>
+       content.innerHTML = `
+    <div class="left-side">
+        <div class="slider-wrapper">
+            ${images.length > 1 ? `<button class="slider-btn left-btn" onclick="slideImg(-1)">&#8592;</button>` : ''}
+            <img id="sliderImg" src="${images[0]}" class="detail-img" onerror="this.src='https://via.placeholder.com/450x300?text=No+Image'">
+            ${images.length > 1 ? `<button class="slider-btn right-btn" onclick="slideImg(1)">&#8594;</button>` : ''}
+            ${images.length > 1 ? `<div class="slider-dots" id="sliderDots"></div>` : ''}
+        </div>
+        <h1 class="detail-name">${pc.name}</h1>
+    </div>
+    <div class="right-side">
+        <div class="detail-desc">${pc.description}</div>
+        <div class="detail-price">${pc.price} AZN</div>
+
+        <div style="display:flex; gap:15px; margin-top:25px; flex-wrap:wrap;">
+            <button class="back-btn" onclick="closeDetails()">← GERİ</button>
+            <button class="back-btn" style="background:#49fb35; color:#000;" onclick="showBuyForm(${pc.id})">İNDİ AL</button>
+        </div>
+
+        <!-- CHECKOUT FORM -->
+        <div id="buy-form-${pc.id}" style="display:none; margin-top:25px; background:rgba(255,255,255,0.03); padding:20px; border-radius:12px; border:1px solid #30363d;">
+            <h3 style="color:#58a6ff; margin:0 0 15px 0;">📞 Əlaqə Məlumatı</h3>
+            <p style="color:#8b949e; margin:0 0 15px 0; font-size:0.9rem;">Telefon nömrəniz satıcıya göndəriləcək ki, sizinlə əlaqə saxlasın.</p>
+            <input type="tel" id="phone-input-${pc.id}" 
+                placeholder="+994501234567"
+                style="width:100%; padding:12px; background:#0d1117; border:1px solid #30363d;
+                border-radius:6px; color:white; box-sizing:border-box; margin-bottom:15px; font-size:1rem;">
+            <div style="display:flex; gap:10px;">
+                <button onclick="confirmBuy(${pc.id})" style="
+                    flex:1; padding:12px; background:#49fb35; border:none;
+                    border-radius:8px; color:#000; font-weight:bold; cursor:pointer; font-size:1rem;">
+                    ✅ Təsdiqlə və Göndər
+                </button>
+                <button onclick="document.getElementById('buy-form-${pc.id}').style.display='none'" style="
+                    flex:1; padding:12px; background:transparent; border:1px solid #f87171;
+                    border-radius:8px; color:#f87171; font-weight:bold; cursor:pointer; font-size:1rem;">
+                    Ləğv Et
+                </button>
             </div>
-            <div class="right-side">
-                <div class="detail-desc">${pc.description}</div>
-                <div class="detail-price">${pc.price} AZN</div>
-                <div style="display:flex; gap:15px; margin-top:25px;">
-                    <button class="back-btn" onclick="closeDetails()">← GERİ</button>
-                    <button class="back-btn" style="background:#49fb35; color:#000;" onclick="buyComputer(${pc.id})">İNDİ AL</button>
-                </div>
-            </div>
-        `;
+        </div>
+    </div>
+`;
 
         if (images.length > 1) {
             createSlider(images);
@@ -407,40 +433,77 @@ function closeDetails() {
             };
         }
 
-        async function buyComputer(computerId) {
-            const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+function buyComputer(id, name, price) {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    if (!token) {
+        alert("Kompüter almaq üçün giriş etməlisiniz!");
+        window.location.href = "login.html";
+        return;
+    }
+    localStorage.setItem("selectedPC", JSON.stringify({ id, name, price }));
+    window.location.href = "checkout.html";
+}
 
-            if (!token) {
-                alert("Kompüter almaq üçün giriş etməlisiniz!");
-                window.location.href = "login.html";
-                return;
+window.onload = () => {
+    checkAuth();
+    loadComputers();
+};
+
+async function confirmBuy(computerId) {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const phone = document.getElementById(`phone-input-${computerId}`).value.trim();
+
+    if (!token) {
+        alert("Zəhmət olmasa giriş edin!");
+        window.location.href = "login.html";
+        return;
+    }
+
+    if (!phone) {
+        alert("Zəhmət olmasa telefon nömrənizi daxil edin!");
+        return;
+    }
+
+    try {
+        // Step 1 — Save to bought list and delete computer
+        const buyRes = await fetch(`http://localhost:8080/api/customers/buy/${computerId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
+        });
 
-            try {
-                const res = await fetch(`https://localhost:8080/api/customers/buy/${computerId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (res.ok) {
-                    alert("Təbriklər! Alış uğurla tamamlandı.");
-                    closeDetails();
-                } else {
-                    const errorData = await res.json();
-                    alert("Xəta: " + (errorData.message || "Alış baş tutmadı."));
-                }
-            } catch (err) {
-                alert("Serverlə bağlantı kəsildi!");
-            }
+        if (!buyRes.ok) {
+            const err = await buyRes.json();
+            alert("Xəta: " + (err.message || "Alış baş tutmadı."));
+            return;
         }
 
-        window.onload = () => {
-            checkAuth();
+        // Step 2 — Send email with phone to seller
+        const contactRes = await fetch(`http://localhost:8080/api/customers/contact/${computerId}?phone=${encodeURIComponent(phone)}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (contactRes.ok) {
+            alert("Təbriklər! Alış uğurlu oldu. Satıcıya bildiriş göndərildi.");
+            closeDetails();
+            loadComputers(); // refresh list
+        } else {
+            // Buy succeeded but email failed — still ok
+            alert("Alış uğurlu oldu! Lakin email göndərilmədi.");
+            closeDetails();
             loadComputers();
-        };
+        }
+
+    } catch (err) {
+        alert("Bağlantı xətası!");
+    }
+}
     </script>
 </body>
 </html>
