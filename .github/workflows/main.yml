@@ -45,7 +45,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }} # Tireli sətirlərlə olan o meşhur KEY
           script: |
-            cd ~/ComputerSatisi2
+            cd ~/ComputerSatisi2/demo
             docker-compose docker-compose.yml down
             docker-compose docker-compose.yml pull
             docker-compose docker-compose.yml up -d
