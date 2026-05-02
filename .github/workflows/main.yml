@@ -3,7 +3,7 @@ name: Contabo Server Auto-Deploy
 on:
   push:
     branches:
-      - main
+      - main  # Əsas branch-ın master-dirsə, bunu master et
 
 jobs:
   deploy:
@@ -17,7 +17,7 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
+          key: ${{ secrets.KEY }}  # Buranı 'password' yerinə 'key' etdik
           script: |
             cd ~/ComputerSatisi2
             git pull origin main
