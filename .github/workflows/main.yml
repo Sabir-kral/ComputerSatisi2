@@ -20,7 +20,8 @@ jobs:
           key: ${{ secrets.KEY }}  # Buranı 'password' yerinə 'key' etdik
           script: |
             cd ~/ComputerSatisi2
-            git pull origin main
+            git fetch --all
+            git reset --hard origin/main
             docker-compose down
             docker-compose up -d --build
             docker image prune -f
