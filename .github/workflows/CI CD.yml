@@ -21,19 +21,19 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
-        working-directory: ../frontEnd
+        working-directory: ./demo
 
       - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker Image
         run: docker build -t sabirkral/techstore-dev:latest .
-        working-directory: ../frontEnd
+        working-directory: ./frontEnd
 
 
       - name: Push Docker Image
         run: docker push sabirkral/techstore-dev:latest
-        working-directory: ../frontEnd
+        working-directory: ./frontEnd
 
   deploy:
     needs: build-and-test  # Deploy only if the 'build-and-test' job succeeds
@@ -48,6 +48,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/demobookshopping/files/backend
-            docker-compose -f docker-compose.dev.yml down
-            docker-compose -f docker-compose.dev.yml pull
-            docker-compose -f docker-compose.dev.yml up -d
+            docker-compose -f docker-compose.yml down
+            docker-compose -f docker-compose.yml pull
+            docker-compose -f docker-compose.yml up -d
