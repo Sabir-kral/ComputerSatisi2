@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const data = text ? JSON.parse(text) : {};
                     
                     alert("Təbriklər! Qeydiyyat uğurla tamamlandı.");
-                    window.location.href = "login.html";
+                    window.location.href = "verify.html";
                 } else {
                     const errorMsg = await response.text();
                     console.error("Backend xətası:", response.status, errorMsg);
