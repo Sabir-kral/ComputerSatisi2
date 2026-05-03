@@ -4,7 +4,7 @@ if (!token) location.href = 'login.html';
 let currentComputerId = null;
 
 async function loadProfile() {
-    const response = await fetch('https://localhost:8080/api/customers/profile', {
+    const response = await fetch('http://95.111.230.66:8080/api/customers/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
     });
 
@@ -37,7 +37,7 @@ async function processUpdate() {
     };
 
     try {
-        const response = await fetch(`https://localhost:8080/api/customers/profile?email=${encodeURIComponent(currentEmail)}`, {
+        const response = await fetch(`http://95.111.230.66:8080/api/customers/profile?email=${encodeURIComponent(currentEmail)}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -63,7 +63,7 @@ async function processUpdate() {
 
 async function deleteAccount() {
     if (confirm("Hesabınız həmişəlik silinsin?")) {
-        await fetch('https://localhost:8080/api/customers/delete', {
+        await fetch('http://95.111.230.66:8080/api/customers/delete', {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -89,7 +89,7 @@ async function getMyComputers() {
     container.innerHTML = "<p style='color:white'>Yüklənir...</p>";
 
     try {
-        const res = await fetch('https://localhost:8080/api/customers/v1', {
+        const res = await fetch('http://95.111.230.66:8080/api/customers/v1', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -191,7 +191,7 @@ async function confirmOrder() {
     const idsString = selectedPcIds.join(",");
 
     try {
-        const response = await fetch(`https://localhost:8080/api/customers/buy?ids=${idsString}&phone=${encodeURIComponent(phone)}`, {
+        const response = await fetch(`http://95.111.230.66:8080/api/customers/buy?ids=${idsString}&phone=${encodeURIComponent(phone)}`, {
             method: 'POST',
             headers: { 
                 'Authorization': `Bearer ${token}`
@@ -228,7 +228,7 @@ async function confirmOrder() {
     }
 
     try {
-        const response = await fetch(`https://localhost:8080/api/orders/buy/${targetPcId}?phone=${encodeURIComponent(phone)}`, {
+        const response = await fetch(`http://95.111.230.66:8080/api/orders/buy/${targetPcId}?phone=${encodeURIComponent(phone)}`, {
             method: 'POST',
             headers: { 
                 'Authorization': `Bearer ${token}` 
@@ -258,7 +258,7 @@ async function getSellingComputers() {
     container.innerHTML = "<p style='color:white'>Yüklənir...</p>";
 
     try {
-        const res = await fetch('https://localhost:8080/api/customers/selling', {
+        const res = await fetch('http://95.111.230.66:8080/api/customers/selling', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -301,7 +301,7 @@ async function openSellingDetail(id) {
     content.innerHTML = "<p style='color:white;text-align:center;'>Yüklənir...</p>";
 
     try {
-        const res = await fetch(`https://localhost:8080/api/computers/${id}`, {
+        const res = await fetch(`http://95.111.230.66:8080/api/computers/${id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const pc = await res.json();
@@ -360,7 +360,7 @@ async function submitUpdateComputer() {
     }
 
     try {
-        const res = await fetch(`https://localhost:8080/api/computers/${currentComputerId}`, {
+        const res = await fetch(`http://95.111.230.66:8080/api/computers/${currentComputerId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -386,7 +386,7 @@ async function deleteComputer(id) {
     if (!confirm("Bu kompüteri silmək istədiyinizdən əminsiniz?")) return;
 
     try {
-        const res = await fetch(`https://localhost:8080/api/computers/${id}`, {
+        const res = await fetch(`http://95.111.230.66:8080/api/computers/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });

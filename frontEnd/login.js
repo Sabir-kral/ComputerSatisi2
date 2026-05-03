@@ -5,7 +5,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('https://localhost:8080/api/auth/login', {
+        const response = await fetch('http://95.111.230.66:8080/api/auth/login', {
             method: 'POST',
             mode:"cors",
             headers: { 'Content-Type': 'application/json' },

@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Qeydiyyat üçün göndərilir:", userData);
 
             try {
-                const response = await fetch("https://localhost:8080/api/customers", {
+                const response = await fetch("http://95.111.230.66:8080/api/customers", {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json' 
