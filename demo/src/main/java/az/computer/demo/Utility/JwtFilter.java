@@ -29,7 +29,9 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
 
         // Şəkil yükləmə və auth yollarını filterdən tamamilə azad edirik
-        if (path.startsWith("/api/upload") || path.startsWith("/api/auth") || path.startsWith("/uploads")) {
+
+// Şəkillərin birbaşa açılması üçün /uploads/ yolunu filtrdən keçirmə
+        if (path.startsWith("/api/upload") || path.startsWith("/api/auth") || path.startsWith("/uploads/")) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -44,8 +44,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. Ümumi icazələr
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**", "/api/users/**").permitAll()
-                        .requestMatchers("/api/upload/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/customers/v2").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll() // Detallara baxmaq hamıya açıq olsun
+                        .requestMatchers("/uploads/**").permitAll() // Şəkillərə baxmağa hər kəsə icazə ver
 
                         // 2. Qeydiyyat və Kompüter siyahısı (Hamı üçün)
                         // QEYD: Əgər link /api/customers-dirsə, ulduzlarla yazmaq daha etibarlıdır
@@ -79,22 +80,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        // 127.0.0.1:5500-dən gələn sorğulara tam icazə veririk
+        configuration.setAllowedOrigins(Arrays.asList("http://127.0.0.1:5500", "http://localhost:5500"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        // Başlıqları daha geniş şəkildə icazə veririk
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "Origin",
-                "X-Requested-With",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"
-        ));
+        // Bütün header-lərə icazə veririk (Content-Type daxil)
+        configuration.setAllowedHeaders(Arrays.asList("*"));
 
-        // credentials-i false edirik ki, "*" origin ilə konflikt yaratmasın
-        configuration.setAllowCredentials(false);
+        // Token istifadə edirsinizsə bu mütləq true olmalıdır
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
