@@ -55,8 +55,7 @@ public class SecurityConfig {
                         // 3. Digər statik və sənədləşmə yolları
                         .requestMatchers("/api/customers/**").permitAll() // Qeydiyyat üçün icazə ver
                         .requestMatchers("/api/auth/**").permitAll()      // Login üçün icazə ver
-                        .requestMatchers("/upload/image").permitAll()
-                        .requestMatchers("/api/payments/checkout").authenticated()
+                        .requestMatchers("/api/upload/**").permitAll() // /api/ əlavə olundu                        .requestMatchers("/api/payments/checkout").authenticated()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                         // 4. Login tələb edən yollar
