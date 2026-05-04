@@ -1,4 +1,4 @@
-package az.computer.demo.Entity; // Qeyd: Bu class adətən .config paketində olur
+package az.computer.demo.Entity; // Entity yerinə .config paketi daha doğrudur
 
 import az.computer.demo.Service.CustomUserDetailsService;
 import az.computer.demo.Utility.JwtFilter;
@@ -38,36 +38,27 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                // CORS konfiqurasiyasını aktivləşdiririk
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Ümumi icazələr
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/customers/v2").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll() // Detallara baxmaq hamıya açıq olsun
-                        .requestMatchers("/uploads/**").permitAll() // Şəkillərə baxmağa hər kəsə icazə ver
-
-                        // 2. Qeydiyyat və Kompüter siyahısı (Hamı üçün)
-                        // QEYD: Əgər link /api/customers-dirsə, ulduzlarla yazmaq daha etibarlıdır
-                        .requestMatchers(HttpMethod.POST, "/api/customers/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
-
-                        // 3. Digər statik və sənədləşmə yolları
-                        .requestMatchers("/api/customers/**").permitAll() // Qeydiyyat üçün icazə ver
-                        .requestMatchers("/api/auth/**").permitAll()      // Login üçün icazə ver
-                        .requestMatchers("/api/payments/checkout").authenticated()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/customers/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // 4. Login tələb edən yollar
+                        // Login tələb edən yollar
                         .requestMatchers("/api/customers/buy/**").authenticated()
                         .requestMatchers("/api/customers/profile/**").authenticated()
                         .requestMatchers("/api/customers/v1").authenticated()
                         .requestMatchers("/api/customers/selling").authenticated()
                         .requestMatchers("/api/payments/**").authenticated()
 
-                        // 5. Qalan hər şey
                         .anyRequest().authenticated()
                 );
 
@@ -80,21 +71,19 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 1. Dəqiq ünvanları qeyd edin (Ulduz '*' istifadə etməyin)
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://127.0.0.1:5500",
-                "http://localhost:5500",
-                "http://95.111.230.66" // Varsa frontend IP-si
-        ));
+        // XƏTANIN HƏLLİ BURADADIR:
+        // setAllowedOrigins yerinə setAllowedOriginPatterns("*") istifadə edirik.
+        // Bu, həm credentials true olanda işləyir, həm də dinamik origin-ləri qəbul edir.
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
 
-        // 2. Metodlara icazə verin
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type", "Accept"));
 
-        // 3. Header-lərə icazə verin
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
-
-        // 4. Əsas məqam: credentials true olanda yuxarıdakı list dəqiq olmalıdır
+        // Credentials (Token/Cookie) göndərilməsinə icazə veririk
         configuration.setAllowCredentials(true);
+
+        // Browser-in bu konfiqurasiyanı yadda saxlaması üçün (Preflight request optimallaşdırması)
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
