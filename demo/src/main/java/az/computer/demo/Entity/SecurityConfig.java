@@ -44,14 +44,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. Ümumi icazələr
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**", "/api/customers/v2").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll() // Detallara baxmaq hamıya açıq olsun
                         .requestMatchers("/uploads/**").permitAll() // Şəkillərə baxmağa hər kəsə icazə ver
 
                         // 2. Qeydiyyat və Kompüter siyahısı (Hamı üçün)
                         // QEYD: Əgər link /api/customers-dirsə, ulduzlarla yazmaq daha etibarlıdır
                         .requestMatchers(HttpMethod.POST, "/api/customers/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
 
                         // 3. Digər statik və sənədləşmə yolları
