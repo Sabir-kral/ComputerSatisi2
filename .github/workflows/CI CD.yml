@@ -47,6 +47,9 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            cd /root/ComputerSatisi2
+            git push
+            git pull
             cd /root/ComputerSatisi2/demo
             docker-compose -f docker-compose.yml down
             docker-compose -f docker-compose.yml pull
