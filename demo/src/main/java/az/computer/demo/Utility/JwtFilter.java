@@ -26,23 +26,18 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        final String authorizationHeader = request.getHeader("Authorization");
+        String path = request.getServletPath();
 
+        // Şəkil yükləmə və auth yollarını filterdən tamamilə azad edirik
+        if (path.startsWith("/api/upload") || path.startsWith("/api/auth") || path.startsWith("/uploads")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        final String authorizationHeader = request.getHeader("Authorization");
         String username = null;
         String jwt = null;
 
-
-            String path = request.getServletPath();
-            // Bu yollar üçün JWT yoxlamasını keç (SecurityConfig-də permitAll olsa belə filterə girir)
-            if (path.startsWith("/api/upload") || path.startsWith("/api/auth") || path.startsWith("/uploads")) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // ... mövcud JWT yoxlama kodların
-
-
-        // 1. Tokeni başlıqdan götürürük
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
             try {
@@ -52,22 +47,16 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        // 2. Əgər istifadəçi tapılıbsa və hələ sistemə tanıdılmayıbsa
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
             if (jwtUtil.validateToken(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
-
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // İSTİFADƏÇİNİ SİSTEMƏ TANIDIRIQ
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 
-        // 3. Növbəti filtrə ötürürük
         filterChain.doFilter(request, response);
     }
 }

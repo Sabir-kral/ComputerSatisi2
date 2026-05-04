@@ -78,23 +78,22 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Bütün mənşələrə (origin) icazə veririk
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-
-        // İcazə verilən metodlar
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        // KRİTİK HİSSƏ: Authorization başlığına burada icazə veririk
+        // Başlıqları daha geniş şəkildə icazə veririk
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type",
-                "X-Requested-With",
                 "Accept",
-                "Origin"
+                "Origin",
+                "X-Requested-With",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
         ));
 
-        // Token və Cookie-lərin keçməsi üçün
-        configuration.setAllowCredentials(true);
+        // credentials-i false edirik ki, "*" origin ilə konflikt yaratmasın
+        configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
