@@ -45,6 +45,7 @@ public class SecurityConfig {
                         // 1. Ümumi icazələr
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/users/**").permitAll()
+                        .requestMatchers("/api/upload/**").permitAll()
 
                         // 2. Qeydiyyat və Kompüter siyahısı (Hamı üçün)
                         // QEYD: Əgər link /api/customers-dirsə, ulduzlarla yazmaq daha etibarlıdır
@@ -55,7 +56,7 @@ public class SecurityConfig {
                         // 3. Digər statik və sənədləşmə yolları
                         .requestMatchers("/api/customers/**").permitAll() // Qeydiyyat üçün icazə ver
                         .requestMatchers("/api/auth/**").permitAll()      // Login üçün icazə ver
-                        .requestMatchers("/api/upload/**").permitAll() // /api/ əlavə olundu                        .requestMatchers("/api/payments/checkout").authenticated()
+                        .requestMatchers("/api/payments/checkout").authenticated()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                         // 4. Login tələb edən yollar

@@ -57,86 +57,124 @@
     </div>
 
     <script>
-        const uploadedUrls = [];
+        // Global state: Yüklənmiş şəkillərin linklərini saxlayır
+const uploadedUrls = [];
 
-        async function handleImageSelect(event) {
-            const files = event.target.files;
-            const token = localStorage.getItem('accessToken');
-            const status = document.getElementById('upload-status');
-            const previews = document.getElementById('image-previews');
+/**
+ * Şəkil seçildikdə avtomatik backend-ə yükləyən funksiya
+ */
+async function handleImageSelect(event) {
+    const files = Array.from(event.target.files); // FileList-i Array-ə çeviririk
+    const token = localStorage.getItem('accessToken');
+    const statusEl = document.getElementById('upload-status');
+    const previewsContainer = document.getElementById('image-previews');
 
-            for (let file of files) {
-                status.innerText = `Yüklənir: ${file.name}...`;
+    if (!token) {
+        alert("Şəkil yükləmək üçün əvvəlcə giriş edin!");
+        return;
+    }
 
-const formData = new FormData();
-formData.append("file", file);
-                try {
-                    const res = await fetch('http://95.111.230.66:8080/api/upload/image', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
-                        body: formData,
-                    });
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
 
-                    const data = await res.json();
+        try {
+            statusEl.innerText = `Yüklənir: ${file.name}...`;
+            statusEl.style.color = "#58a6ff";
 
-                    if (res.ok) {
-                        uploadedUrls.push(data.url);
-
-                        const img = document.createElement('img');
-                        img.src = data.url;
-                        img.className = 'preview-img';
-                        previews.appendChild(img);
-
-                        status.innerText = `✓ ${file.name} yükləndi`;
-                    } else {
-                        status.innerText = `✗ ${file.name} yüklənmədi`;
-                    }
-                } catch (err) {
-                    status.innerText = 'Bağlantı xətası!';
-                }
-            }
-        }
-
-        async function savePC() {
-            const name = document.getElementById('pc-name').value;
-            const price = document.getElementById('pc-price').value;
-            const description = document.getElementById('pc-desc').value;
-            const token = localStorage.getItem('accessToken');
-
-            if (!name || !price || !description) {
-                alert("Bütün xanaları doldurun!");
-                return;
-            }
-
-            if (!token) {
-                alert("Zəhmət olmasa giriş edin!");
-                location.href = 'login.html';
-                return;
-            }
-
-            const response = await fetch('http://95.111.230.66:8080/api/computers/add', {
+            const response = await fetch('http://95.111.230.66:8080/api/upload/image', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name,
-                    price: parseFloat(price),
-                    description,
-                    imageLinks: uploadedUrls
-                }),
-                credentials: 'include'
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
             });
 
-            if (response.ok) {
-                alert("Uğurla əlavə edildi!");
-                location.href = 'index.html';
-            } else {
-                const data = await response.json();
-                alert("Xəta: " + (data.message || "Əlavə edilə bilmədi!"));
-            }
+            if (!response.ok) throw new Error(`${file.name} yüklənə bilmədi.`);
+
+            const data = await response.json();
+            
+            // Uğurlu yükləmə
+            uploadedUrls.push(data.url);
+            renderPreview(data.url, previewsContainer);
+            
+            statusEl.innerText = `✓ ${file.name} uğurla yükləndi`;
+            statusEl.style.color = "#3fb950"; // Yaşıl rəng
+
+        } catch (error) {
+            console.error("Yükləmə xətası:", error);
+            statusEl.innerText = `✗ Xəta: ${file.name}`;
+            statusEl.style.color = "#f85149"; // Qırmızı rəng
         }
+    }
+}
+
+/**
+ * Kiçik önizləmə (thumbnail) yaradan köməkçi funksiya
+ */
+function renderPreview(url, container) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.className = 'preview-img';
+    img.alt = "PC Image";
+    container.appendChild(img);
+}
+
+/**
+ * Bütün məlumatları toplayıb elanı paylaşan funksiya
+ */
+async function savePC() {
+    const token = localStorage.getItem('accessToken');
+    
+    // Elementləri seçirik
+    const fields = {
+        name: document.getElementById('pc-name').value.trim(),
+        price: document.getElementById('pc-price').value,
+        description: document.getElementById('pc-desc').value.trim()
+    };
+
+    // Validasiya
+    if (!fields.name || !fields.price || !fields.description) {
+        return alert("Zəhmət olmasa bütün məlumatları doldurun!");
+    }
+
+    if (uploadedUrls.length === 0) {
+        return alert("Heç olmasa bir şəkil əlavə edin!");
+    }
+
+    if (!token) {
+        alert("Sessiya bitib, yenidən giriş edin.");
+        window.location.href = 'login.html';
+        return;
+    }
+
+    try {
+        const response = await fetch('http://95.111.230.66:8080/api/computers/add', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: fields.name,
+                price: parseFloat(fields.price),
+                description: fields.description,
+                imageLinks: uploadedUrls
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert("Elan uğurla yerləşdirildi!");
+            window.location.href = 'index.html';
+        } else {
+            alert(`Xəta: ${result.message || "Server xətası baş verdi"}`);
+        }
+
+    } catch (err) {
+        console.error("SavePC xətası:", err);
+        alert("Bağlantı xətası! Serverin aktiv olduğundan əmin olun.");
+    }
+}
     </script>
 </body>
 </html>
