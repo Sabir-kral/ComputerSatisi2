@@ -80,14 +80,20 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 127.0.0.1:5500-dən gələn sorğulara tam icazə veririk
-        configuration.setAllowedOrigins(Arrays.asList("http://127.0.0.1:5500", "http://localhost:5500"));
+        // 1. Dəqiq ünvanları qeyd edin (Ulduz '*' istifadə etməyin)
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "http://95.111.230.66" // Varsa frontend IP-si
+        ));
+
+        // 2. Metodlara icazə verin
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        // Bütün header-lərə icazə veririk (Content-Type daxil)
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        // 3. Header-lərə icazə verin
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
 
-        // Token istifadə edirsinizsə bu mütləq true olmalıdır
+        // 4. Əsas məqam: credentials true olanda yuxarıdakı list dəqiq olmalıdır
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
