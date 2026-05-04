@@ -31,6 +31,17 @@ public class JwtFilter extends OncePerRequestFilter {
         String username = null;
         String jwt = null;
 
+
+            String path = request.getServletPath();
+            // Bu yollar üçün JWT yoxlamasını keç (SecurityConfig-də permitAll olsa belə filterə girir)
+            if (path.startsWith("/api/upload") || path.startsWith("/api/auth") || path.startsWith("/uploads")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // ... mövcud JWT yoxlama kodların
+
+
         // 1. Tokeni başlıqdan götürürük
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
