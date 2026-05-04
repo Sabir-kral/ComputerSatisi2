@@ -78,9 +78,23 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // use pattern instead of origin
+
+        // Bütün mənşələrə (origin) icazə veririk
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+
+        // İcazə verilən metodlar
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        // KRİTİK HİSSƏ: Authorization başlığına burada icazə veririk
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "X-Requested-With",
+                "Accept",
+                "Origin"
+        ));
+
+        // Token və Cookie-lərin keçməsi üçün
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
