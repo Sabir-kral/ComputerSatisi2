@@ -58,19 +58,35 @@ public class MailService {
 
         String sellerHtml = "<div style='border:2px solid #58a6ff; padding:20px;'>"
                 + "<h2>Məhsulunuz Satıldı!</h2>"
-                + "<p>Alıcının nömrəsi: <b>" + maskedPhone + "</b></p>"
-                + "<p>Nömrəni tam görmək üçün 2 AZN ödəniş edib qəbzi bura atın.</p>"
+                + "<p>Nömrəni görmək üçün 2 AZN ödəniş edib qəbzi bura atın.</p>"
+                + "<p>4613860201205026"
                 + "</div>";
 
         sellerHelper.setTo(sellerEmail);
         sellerHelper.setSubject("Məhsulunuz Satıldı!");
         sellerHelper.setText(sellerHtml, true);
         mailSender.send(sellerMsg);
+    }
+    public void sendAdminOrderAlert(String sellerEmail, String buyerEmail, String buyerPhone, String pcName, double price) throws MessagingException {
         MimeMessage adminMsg = mailSender.createMimeMessage();
-        MimeMessageHelper adminHelper = new MimeMessageHelper(adminMsg, true, "UTF-8");
-        adminHelper.setTo("sabirmemmedli21152014@gmail.com");
-        adminHelper.setSubject("YENİ ÖDƏNİŞ GÖZLƏNİLİR");
-        adminHelper.setText("Satıcı: " + sellerEmail + " nömrəni almaq üçün 2 AZN ödəyəcək. Alıcı nömrəsi: " + buyerPhone, false);
+        MimeMessageHelper helper = new MimeMessageHelper(adminMsg, true, "UTF-8");
+
+        String htmlContent = "<div style='border: 2px solid #e74c3c; padding: 20px; font-family: Arial;'>"
+                + "<h2 style='color: #e74c3c;'>🚨 YENİ SATIŞ VE ÖDƏNİŞ GÖZLƏNTİSİ</h2>"
+                + "<p><b>Məhsul:</b> " + pcName + " (" + price + " AZN)</p>"
+                + "<hr/>"
+                + "<p><b>Satıcı:</b> " + sellerEmail + "</p>"
+                + "<p><b>Alıcı:</b> " + buyerEmail + "</p>"
+                + "<p style='font-size: 18px; background: #f9f9f9; padding: 10px;'>"
+                + "<b>Alıcının Tam Nömrəsi:</b> <span style='color: blue;'>" + buyerPhone + "</span>"
+                + "</p>"
+                + "<p><i>Qeyd: Satıcı 2 AZN ödedikden sonra bu nömreni ona teqdim edin.</i></p>"
+                + "</div>";
+
+        helper.setTo("sabirmemmedli21152014@gmail.com"); // Senin admin mailin
+        helper.setSubject("DİQQƏT: Yeni Sifariş - " + sellerEmail);
+        helper.setText(htmlContent, true);
+
         mailSender.send(adminMsg);
     }
 }

@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/customers/**").permitAll() // Qeydiyyat üçün icazə ver
                         .requestMatchers("/api/auth/**").permitAll()      // Login üçün icazə ver
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/payments/checkout").authenticated()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                         // 4. Login tələb edən yollar

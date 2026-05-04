@@ -68,8 +68,8 @@
             for (let file of files) {
                 status.innerText = `Yüklənir: ${file.name}...`;
 
-                const formData = new FormData();
-                formData.append("file", fileInputElement.files[0]);
+const formData = new FormData();
+formData.append("file", file);
                 try {
                     const res = await fetch('http://95.111.230.66:8080/api/uploads', {
                         method: 'POST',

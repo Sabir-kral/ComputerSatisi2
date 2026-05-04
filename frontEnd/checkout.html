@@ -141,49 +141,46 @@
         btn.disabled = true;
         btn.innerText = 'Göndərilir...';
 
+        // Backend-in gözlədiyi OrderRequest formatı
+        const orderData = {
+            phone: phone,
+            computerIds: [selectedPC.id], // List formatında göndəririk
+            amount: selectedPC.price
+        };
+
         try {
-            // Step 1 — Buy computer (saves to bought list, deletes from system)
-            const buyRes = await fetch(`http://95.111.230.66:8080/api/customers/buy/${selectedPC.id}`, {
+            const response = await fetch('http://95.111.230.66:8080/api/payments/checkout', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify(orderData)
             });
 
-            if (!buyRes.ok) {
-                const err = await buyRes.json();
+            if (response.ok) {
+                localStorage.removeItem('selectedPC');
+                result.style.color = '#49fb35';
+                result.innerText = '✅ Sifariş uğurlu oldu! Satıcı və Admin məlumatlandırıldı.';
+                btn.innerText = 'Uğurlu!';
+                setTimeout(() => { location.href = 'index.html'; }, 2500);
+            } else {
+                const err = await response.json();
                 result.style.color = '#f87171';
-                result.innerText = 'Xəta: ' + (err.message || 'Alış baş tutmadı.');
+                result.innerText = 'Xəta: ' + (err.message || 'Sifariş tamamlanmadı.');
                 btn.disabled = false;
                 btn.innerText = '✅ Sifarişi Təsdiqlə';
-                return;
             }
-
-            // Step 2 — Send email with phone to seller
-            const contactRes = await fetch(`http://95.111.230.66:8080/api/customers/contact/${selectedPC.id}?phone=${encodeURIComponent(phone)}`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            localStorage.removeItem('selectedPC');
-            result.style.color = '#49fb35';
-            result.innerText = '✅ Sifariş uğurlu oldu! Satıcı sizinlə əlaqə saxlayacaq.';
-            btn.innerText = 'Uğurlu!';
-
-            setTimeout(() => { location.href = 'index.html'; }, 2000);
-
         } catch (err) {
             result.style.color = '#f87171';
-            result.innerText = 'Bağlantı xətası!';
+            result.innerText = 'Bağlantı xətası (Backend işləmir?)';
             btn.disabled = false;
             btn.innerText = '✅ Sifarişi Təsdiqlə';
         }
     }
 </script>
+    
+
 
 </body>
 </html>
