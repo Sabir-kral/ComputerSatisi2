@@ -31,7 +31,7 @@ public class FileUploadController {
             Path path = Paths.get(UPLOAD_DIR + filename);
             Files.write(path, file.getBytes());
 
-            String imageUrl = "http://localhost:8080/uploads/" + filename;
+            String imageUrl = "http://95.111.230.66:8080/uploads/" + filename;
             return ResponseEntity.ok(Map.of("url", imageUrl));
         } catch (IOException e) {
             return ResponseEntity.status(500).body(Map.of("error", "Upload failed"));

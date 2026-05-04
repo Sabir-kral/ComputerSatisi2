@@ -75,7 +75,6 @@ formData.append("file", file);
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
                         body: formData,
-                        credentials: 'include'
                     });
 
                     const data = await res.json();
