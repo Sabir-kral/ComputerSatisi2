@@ -71,18 +71,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // XƏTANIN HƏLLİ BURADADIR:
-        // setAllowedOrigins yerinə setAllowedOriginPatterns("*") istifadə edirik.
-        // Bu, həm credentials true olanda işləyir, həm də dinamik origin-ləri qəbul edir.
-        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
+        // Pattern yerinə birbaşa ünvanları daxil etmək daha stabildir
+        configuration.setAllowedOrigins(Arrays.asList("http://127.0.0.1:5500", "http://localhost:5500"));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type", "Accept"));
 
-        // Credentials (Token/Cookie) göndərilməsinə icazə veririk
+        // "*" yerinə konkret headerləri saxlayın və ya ulduzdan istifadə edin (allowCredentials ilə işləyir)
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+
         configuration.setAllowCredentials(true);
-
-        // Browser-in bu konfiqurasiyanı yadda saxlaması üçün (Preflight request optimallaşdırması)
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
