@@ -73,18 +73,17 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Frontend-in işlədiyi ünvanları dəqiq qeyd edirik
-        configuration.setAllowedOrigins(Arrays.asList("http://127.0.0.1:5500", "http://localhost:5500","http://95.111.230.66:3000","https://95.111.230.66:3000"));
+        // setAllowedOrigins əvəzinə setAllowedOriginPatterns istifadə edirik
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "http://95.111.230.66:3000",
+                "https://95.111.230.66:3000"
+        ));
 
-        // Metodlar
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-
-        // Header-lər
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
-
-        // Vacib: allowCredentials true olanda yuxarıdakı origins ulduz (*) ola bilməz!
         configuration.setAllowCredentials(true);
-
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
