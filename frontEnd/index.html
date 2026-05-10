@@ -259,88 +259,65 @@
             `<p style="color: #f87171; text-align:center;">Backend ilə əlaqə qurulmadı. Zəhmət olmasa interneti və ya serveri yoxlayın.</p>`;
     }
 }
-        async function openDetails(id) {
+async function openDetails(id) {
     const overlay = document.getElementById("detailOverlay");
     const content = document.getElementById("detailContent");
     const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
 
-    overlay.classList.remove("active");
-    void overlay.offsetWidth;
-    overlay.classList.add("active");
+    overlay.classList.add("active"); // .active class-ını əlavə edirik
+    overlay.style.display = "flex";
+    overlay.style.opacity = "0";
+    content.innerHTML = "<h1 style='color:white'>Yüklənir...</h1>";
 
-    content.innerHTML = "<h1 style='color:white; text-align:center;'>Yüklənir...</h1>";
-    content.style.animation = "none";
-const customHeaders = {
-        "Content-Type": "application/json"
-    };
+    setTimeout(() => { 
+        overlay.style.opacity = "1"; 
+        overlay.style.transition = "opacity 0.3s"; 
+    }, 10);
+
     try {
-        const res = await fetch(`${API_BASE}/computers/${id}`, {
-            method:"GET",
-            headers: headers,
-            credentials: 'include'
-        });
-        const pc = await res.json();
-        const images = pc.imageLinks && pc.imageLinks.length > 0
-            ? pc.imageLinks
-            : ['https://via.placeholder.com/450x300?text=No+Image'];
-
-       content.innerHTML = `
-    <div class="left-side">
-        <div class="slider-wrapper">
-            ${images.length > 1 ? `<button class="slider-btn left-btn" onclick="slideImg(-1)">&#8592;</button>` : ''}
-            <img id="sliderImg" src="${images[0]}" class="detail-img" onerror="this.src='https://via.placeholder.com/450x300?text=No+Image'">
-            ${images.length > 1 ? `<button class="slider-btn right-btn" onclick="slideImg(1)">&#8594;</button>` : ''}
-            ${images.length > 1 ? `<div class="slider-dots" id="sliderDots"></div>` : ''}
-        </div>
-        <h1 class="detail-name">${pc.name}</h1>
-    </div>
-    <div class="right-side">
-        <div class="detail-desc">${pc.description}</div>
-        <div class="detail-price">${pc.price} AZN</div>
-
-        <div style="display:flex; gap:15px; margin-top:25px; flex-wrap:wrap;">
-            <button class="back-btn" onclick="closeDetails()">← GERİ</button>
-            <button class="back-btn" style="background:#49fb35; color:#000;" onclick="showBuyForm(${pc.id})">İNDİ AL</button>
-        </div>
-
-        <!-- CHECKOUT FORM -->
-        <div id="buy-form-${pc.id}" style="display:none; margin-top:25px; background:rgba(255,255,255,0.03); padding:20px; border-radius:12px; border:1px solid #30363d;">
-            <h3 style="color:#58a6ff; margin:0 0 15px 0;">📞 Əlaqə Məlumatı</h3>
-            <p style="color:#8b949e; margin:0 0 15px 0; font-size:0.9rem;">Telefon nömrəniz satıcıya göndəriləcək ki, sizinlə əlaqə saxlasın.</p>
-            <input type="tel" id="phone-input-${pc.id}" 
-                placeholder="+994501234567"
-                style="width:100%; padding:12px; background:#0d1117; border:1px solid #30363d;
-                border-radius:6px; color:white; box-sizing:border-box; margin-bottom:15px; font-size:1rem;">
-            <div style="display:flex; gap:10px;">
-                <button onclick="confirmBuy(${pc.id})" style="
-                    flex:1; padding:12px; background:#49fb35; border:none;
-                    border-radius:8px; color:#000; font-weight:bold; cursor:pointer; font-size:1rem;">
-                    ✅ Təsdiqlə və Göndər
-                </button>
-                <button onclick="document.getElementById('buy-form-${pc.id}').style.display='none'" style="
-                    flex:1; padding:12px; background:transparent; border:1px solid #f87171;
-                    border-radius:8px; color:#f87171; font-weight:bold; cursor:pointer; font-size:1rem;">
-                    Ləğv Et
-                </button>
-            </div>
-        </div>
-    </div>
-`;
-
-        if (images.length > 1) {
-            createSlider(images);
+        // Headers obyektini sadələşdiririk
+        const myHeaders = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (token) {
+            myHeaders['Authorization'] = `Bearer ${token}`;
         }
 
-        void content.offsetWidth;
-        content.style.animation = "cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards";
-        setupDrag(content);
+        // DİQQƏT: API_BASE ilə computers arasına slash QOYMA (çünki API_BASE-də var)
+        const res = await fetch(`${API_BASE}/computers/${id}`, { 
+            method: 'GET',
+            headers: myHeaders
+        });
+
+        if (!res.ok) throw new Error("Məlumat tapılmadı");
+
+        const pc = await res.json();
+        const img = pc.imageLinks?.[0] || 'https://via.placeholder.com/450x300?text=No+Image';
+
+        content.innerHTML = `
+            <div class="left-side">
+                <img src="${img}" class="detail-img">
+                <h1 class="detail-name">${pc.name}</h1>
+            </div>
+            <div class="right-side">
+                <div class="detail-desc">${pc.description || "Açıqlama yoxdur."}</div>
+                <div class="detail-price">${pc.price} AZN</div>
+                <div style="display:flex; gap:15px; margin-top:25px;">
+                    <button class="back-btn" onclick="closeDetails()">← GERİ</button>
+                    <button class="back-btn" style="background:#49fb35; color:#000;" onclick="buyComputer(${pc.id}, '${pc.name}', ${pc.price})">İNDİ AL</button>
+                </div>
+            </div>
+        `;
+
+        setupDrag(content); // Drag funksiyasını işə salırıq
 
     } catch (e) {
-        console.error(e);
-        closeDetails();
+        console.error("Detalları gətirərkən xəta:", e);
+        content.innerHTML = "<h1 style='color:white'>Məlumat tapılmadı və ya server xətası.</h1>";
+        setTimeout(closeDetails, 2000);
     }
 }
-
 function createSlider(images) {
     let current = 0;
     const img = document.getElementById("sliderImg");
