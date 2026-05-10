@@ -73,16 +73,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // setAllowedOrigins əvəzinə setAllowedOriginPatterns istifadə edirik
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://127.0.0.1:5500",
-                "http://localhost:5500",
-                "http://95.111.230.66:3000",
-                "https://95.111.230.66:3000"
-        ));
+        // Pattern yerinə birbaşa ünvanları daxil etmək daha stabildir
+        configuration.setAllowedOrigins(Arrays.asList("http://127.0.0.1:5500", "http://localhost:5500","http://95.111.230.66:3000"));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // "*" yerinə konkret headerləri saxlayın və ya ulduzdan istifadə edin (allowCredentials ilə işləyir)
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
