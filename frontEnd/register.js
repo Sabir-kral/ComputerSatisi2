@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     },
                     body: JSON.stringify(userData)
                 });
-                const data = response.json();
+                const data = await response.json();
 
                 if (response.ok) {
                     const text = await response.text();
