@@ -2,185 +2,79 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sifariş | TechStore</title>
     <style>
-        body {
-            background-color: #0d1117;
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .checkout-card {
-            background: #161b22;
-            padding: 40px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 450px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 1px solid #30363d;
-        }
-        h2 { color: #58a6ff; text-align: center; margin-bottom: 10px; }
-        .product-info {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-left: 4px solid #58a6ff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 25px;
-        }
-        .product-info h3 { color: #58a6ff; margin: 0 0 5px 0; }
-        .product-info p { color: #49fb35; font-size: 1.3rem; font-weight: bold; margin: 0; }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            background: #0d1117;
-            color: white;
-            box-sizing: border-box;
-            font-size: 1rem;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        input:focus { border-color: #58a6ff; outline: none; }
-        input::placeholder { color: #8b949e; }
-        .btn-confirm {
-            width: 100%;
-            padding: 14px;
-            background: #49fb35;
-            color: #000;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-bottom: 10px;
-        }
-        .btn-confirm:hover { opacity: 0.9; transform: scale(1.02); }
-        .btn-confirm:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; transform: none; }
-        .btn-back {
-            width: 100%;
-            padding: 14px;
-            background: transparent;
-            color: #f87171;
-            border: 1px solid #f87171;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-back:hover { background: #f87171; color: #000; }
-        #result-message {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 14px;
-            min-height: 20px;
-        }
-        .info-text {
-            color: #8b949e;
-            font-size: 0.85rem;
-            text-align: center;
-            margin-bottom: 20px;
-        }
+        body { background-color: #0d1117; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .checkout-card { background: #161b22; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid #30363d; }
+        .product-item { background: #0d1117; padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #58a6ff; display: flex; justify-content: space-between; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
+        .btn-confirm { width: 100%; padding: 14px; background: #49fb35; color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="checkout-card">
-    <h2>🛒 Sifarişi Tamamla</h2>
-    
-    <div id="product-info" class="product-info" style="display:none;">
-        <h3 id="pc-name"></h3>
-        <p id="pc-price"></p>
-    </div>
+    <h2 style="text-align:center; color:#58a6ff;">🛒 Sifarişi Tamamla</h2>
+    <div id="product-list"></div>
+    <p style="text-align:right;">Cəmi: <span id="final-price" style="color:#49fb35; font-weight:bold;">0</span> AZN</p>
 
-    <p class="info-text">Telefon nömrəniz satıcıya göndəriləcək ki, sizinlə əlaqə saxlasın.</p>
-
-    <input type="tel" id="phone" placeholder="Telefon nömrəniz (məs: +994501234567)">
-    
-    <button class="btn-confirm" id="confirm-btn" onclick="confirmOrder()">✅ Sifarişi Təsdiqlə</button>
-    <button class="btn-back" onclick="history.back()">← Geri</button>
-    
-    <div id="result-message"></div>
+    <input type="tel" id="phone" placeholder="Telefon nömrəniz">
+    <button class="btn-confirm" id="confirm-btn" onclick="confirmOrder()">✅ Təsdiqlə və Al</button>
+    <div id="result-message" style="text-align:center; margin-top:15px;"></div>
 </div>
 
 <script>
     const token = localStorage.getItem('accessToken');
-    if (!token) {
-        alert("Zəhmət olmasa giriş edin!");
-        location.href = 'login.html';
-    }
+    const cartItems = JSON.parse(localStorage.getItem("userCart")) || [];
 
-    const selectedPC = JSON.parse(localStorage.getItem("selectedPC"));
-    if (selectedPC) {
-        document.getElementById('product-info').style.display = 'block';
-        document.getElementById('pc-name').innerText = selectedPC.name;
-        document.getElementById('pc-price').innerText = selectedPC.price + ' AZN';
-    } else {
-        location.href = 'index.html';
-    }
+    if (!token || cartItems.length === 0) location.href = 'index.html';
+
+    const listContainer = document.getElementById('product-list');
+    let totalAmount = 0;
+
+    listContainer.innerHTML = cartItems.map(pc => {
+        totalAmount += parseFloat(pc.price);
+        return `<div class="product-item"><span>${pc.name}</span><b>${pc.price} AZN</b></div>`;
+    }).join('');
+    document.getElementById('final-price').innerText = totalAmount;
 
     async function confirmOrder() {
         const phone = document.getElementById('phone').value.trim();
         const result = document.getElementById('result-message');
         const btn = document.getElementById('confirm-btn');
 
-        if (!phone) {
-            result.style.color = '#f87171';
-            result.innerText = 'Zəhmət olmasa telefon nömrənizi daxil edin!';
-            return;
-        }
+        if (!phone) { alert("Nömrəni yazın!"); return; }
 
         btn.disabled = true;
-        btn.innerText = 'Göndərilir...';
-
-        // Backend-in gözlədiyi OrderRequest formatı
-        const orderData = {
-            phone: phone,
-            computerIds: [selectedPC.id], // List formatında göndəririk
-            amount: selectedPC.price
-        };
+        btn.innerText = 'İşlənilir...';
 
         try {
-            const response = await fetch('http://95.111.230.66:8080/api/payments/checkout', {
+            // 1. Ödəniş sorğusu
+            const res = await fetch('http://95.111.230.66:8080/api/payments/checkout', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(orderData)
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, computerIds: cartItems.map(p => p.id), amount: totalAmount })
             });
 
-            if (response.ok) {
-                localStorage.removeItem('selectedPC');
-                result.style.color = '#49fb35';
-                result.innerText = '✅ Sifariş uğurlu oldu! Satıcı və Admin məlumatlandırıldı.';
-                btn.innerText = 'Uğurlu!';
-                setTimeout(() => { location.href = 'index.html'; }, 2500);
-            } else {
-                const err = await response.json();
-                result.style.color = '#f87171';
-                result.innerText = 'Xəta: ' + (err.message || 'Sifariş tamamlanmadı.');
-                btn.disabled = false;
-                btn.innerText = '✅ Sifarişi Təsdiqlə';
+            if (res.ok) {
+                // 2. BAZADAN SİLMƏ (Status yoxdursa, hər birini tək-tək silirik)
+                for (let pc of cartItems) {
+                    await fetch(`http://95.111.230.66:8080/api/computers/${pc.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                }
+
+                // 3. Uğurlu mesaj və səbəti təmizləmə
+                localStorage.setItem("userCart", JSON.stringify([]));
+                result.innerHTML = "<span style='color:#49fb35;'>✅ Uğurlu oldu! Gmail-inizə baxın.</span>";
+                setTimeout(() => { location.href = 'index.html'; }, 3000);
             }
         } catch (err) {
-            result.style.color = '#f87171';
-            result.innerText = 'Bağlantı xətası (Backend işləmir?)';
+            result.innerText = "Xəta baş verdi!";
             btn.disabled = false;
-            btn.innerText = '✅ Sifarişi Təsdiqlə';
         }
     }
 </script>
-    
-
-
 </body>
 </html>
