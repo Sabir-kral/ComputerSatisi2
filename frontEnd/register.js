@@ -23,13 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     },
                     body: JSON.stringify(userData)
                 });
+                const data = response.json();
 
                 if (response.ok) {
                     const text = await response.text();
                     // Əgər backend JSON qaytarsa onu parse edirik
-                    const data = text ? JSON.parse(text) : {};
-                    
+
                     alert("Təbriklər! Qeydiyyat uğurla tamamlandı.");
+                    localStorage.setItem("pendingEmail",data.email)
                     window.location.href = "verify.html";
                 } else {
                     const errorMsg = await response.text();
