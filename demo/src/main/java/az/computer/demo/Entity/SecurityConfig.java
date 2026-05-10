@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/resendOTP").permitAll()
                         .requestMatchers("/api/users/verify").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/upload/**").permitAll() // Şəkil yükləməyə icazə ver
                         .requestMatchers("/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
