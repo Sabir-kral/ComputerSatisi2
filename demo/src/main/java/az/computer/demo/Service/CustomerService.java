@@ -38,7 +38,7 @@ public class CustomerService {
 
     @Transactional
     public MessageResponse register(CustomerRequest request) throws MessagingException {
-        userService.isUserExists(request.getEmail()); // now safely deletes old unverified
+        userService.isUserExists(request.getEmail());
 
         UserEntity user = new UserEntity();
         user.setEmail(request.getEmail());
@@ -82,7 +82,6 @@ public class CustomerService {
                 .orElseThrow(() -> new RuntimeException("Customer not found: " + username));
 
         CustomerResponse dto = CustomerMapper.toDTO(customer);
-        // Satdığı kompüterləri göstəririk
         dto.setSellingComputers(ComputerMapper.toDTOList(customer.getSellingComputers()));
         return dto;
     }
@@ -100,35 +99,29 @@ public class CustomerService {
             throw new RuntimeException("Siz bu kompüteri artıq almısınız.");
         }
 
-        // Remove from all sellers
+        // Satıcıların vitrinindən (satdıqları siyahısından) çıxarırıq
         if (computer.getSellers() != null && !computer.getSellers().isEmpty()) {
-            for (CustomerEntity seller : computer.getSellers()) {
+            for (CustomerEntity seller : new ArrayList<>(computer.getSellers())) {
                 seller.getSellingComputers().remove(computer);
                 customerRepo.save(seller);
             }
         }
 
-        // Remove from all buyers (just in case)
-        if (computer.getBuyers() != null && !computer.getBuyers().isEmpty()) {
-            for (CustomerEntity b : computer.getBuyers()) {
-                b.getBoughtComputers().remove(computer);
-                customerRepo.save(b);
-            }
-        }
-
-        // Add to buyer's bought list
+        // Alıcının alınanlar (səbət/alınanlar) siyahısına əlavə edirik
         buyer.getBoughtComputers().add(computer);
         customerRepo.save(buyer);
 
-        // Delete computer from system
-        computerRepo.delete(computer);
+        // DÜZƏLİŞ: computerRepo.delete(computer); SƏTRİ SİLİNDİ!
+        // Çünki DB-dən silinəndə relationship tərəfdə də itirdi.
+        // İndi sadəcə bazada qalır, amma heç bir satıcıda olmadığı üçün ana səhifədə (getAll) görünməyəcək.
 
-        logService.add("Customer " + buyer.getEmail() + " bought and deleted PC ID: " + computerId, "CUSTOMER_BOUGHT");
+        logService.add("Customer " + buyer.getEmail() + " bought PC ID: " + computerId, "CUSTOMER_BOUGHT");
 
         MessageResponse response = new MessageResponse();
         response.setMessage("Computer bought successfully");
         return response;
     }
+
     public MessageResponse contactSeller(Long computerId, String phone) throws MessagingException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         CustomerEntity buyer = customerRepo.findByEmail(email)
@@ -143,11 +136,11 @@ public class CustomerService {
         }
 
         mailService.sendOrderNotifications(
-                buyer.getEmail(),    // buyerEmail
-                sellerEmail,         // sellerEmail
-                computer.getName(),  // computerName
-                computer.getPrice(), // price
-                phone                // buyerPhone
+                buyer.getEmail(),
+                sellerEmail,
+                computer.getName(),
+                computer.getPrice(),
+                phone
         );
 
         logService.add("Customer " + buyer.getEmail() + " contacted seller for PC ID: " + computerId, "CUSTOMER_CONTACTED_SELLER");
@@ -156,8 +149,6 @@ public class CustomerService {
         response.setMessage("Satıcıya bildiriş göndərildi");
         return response;
     }
-
-
 
     @Transactional
     public MessageResponse updateCustomerProfile(CustomerRequest request, String email) {

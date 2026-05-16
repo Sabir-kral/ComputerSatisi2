@@ -17,6 +17,8 @@
             </div>
             
             <div class="button-group">
+                <button class="btn-back" onclick="goBack()">← Geri</button>
+                
                 <button class="btn-blue" onclick="showUpdate()">Məlumatları Yenilə</button>
                 <button class="btn-blue" style="background:#8957e5" onclick="getMyComputers()">Aldığım Kompüterlər</button>
                 <button class="btn-blue" style="background:#f78166" onclick="getSellingComputers()">Satdığım Kompüterlər</button>
@@ -26,17 +28,21 @@
             </div>
         </div>
 
-<div id="my-computers-area" class="computers-list-container" style="display:none;">
-    <h3 class="section-title">Aldığım Kompüterlər</h3>
-    <div id="pc-list-content"></div>
-    
-    <div id="checkout-summary" style="display:none; margin-top:20px; padding:20px; border-top:2px solid #30363d; text-align:right;">
-        <h3 style="color:white;">Ümumi Cəm: <span id="total-price-display" style="color:#49fb35;">0</span> AZN</h3>
-        <button class="btn-blue" style="background:#49fb35; color:#000; width:200px;" onclick="goToCheckout()">Sifarişi Tamamla</button>
-    </div>
-</div>
+        <div id="my-computers-area" class="computers-list-container" style="display:none;">
+            <h3 class="section-title">Aldığım Kompüterlər</h3>
+            <div id="pc-list-content"></div>
+
+            <div id="checkout-summary" style="display:none; margin-top:20px; padding:20px; border-top:2px solid #30363d; text-align:right;">
+                <h3 style="color:white;">Ümumi Cəm: <span id="total-price-display" style="color:#49fb35;">0</span> AZN</h3>
+                <button class="btn-blue" style="background:#49fb35; color:#000; width:200px;" onclick="goToCheckout()">Sifarişi Tamamla</button>
+            </div>
         </div>
 
+        <div id="my-computers-area-selling" class="computers-list-container-selling" style="display:none;">
+            <h3 class="section-title">Satdığım Kompüterlər</h3>
+            <div id="pc-list-content-selling"></div>
+        </div>
+        
         <div id="selling-area" class="computers-list-container" style="display:none;">
             <h3 class="section-title">Satdığım Kompüterlər</h3>
             <div id="selling-list"></div>
@@ -53,30 +59,14 @@
     </div>
     </div>
 
-    <!-- SELLING DETAIL OVERLAY -->
-    <div id="sellingOverlay" style="
-        display:none; position:fixed; top:0; left:0;
-        width:100vw; height:100vh;
-        background:rgba(13,17,23,0.97);
-        z-index:10000; justify-content:center; align-items:center;">
-        <div id="sellingDetail" style="
-            background:#161b22; border:1px solid #30363d;
-            border-radius:20px; padding:40px; max-width:600px;
-            width:90%; animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;">
+    <div id="sellingOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(13,17,23,0.97); z-index:10000; justify-content:center; align-items:center;">
+        <div id="sellingDetail" style="background:#161b22; border:1px solid #30363d; border-radius:20px; padding:40px; max-width:600px; width:90%; animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;">
             <div id="sellingDetailContent"></div>
         </div>
     </div>
 
-    <!-- UPDATE COMPUTER MODAL -->
-    <div id="updateComputerModal" style="
-        display:none; position:fixed; top:0; left:0;
-        width:100vw; height:100vh;
-        background:rgba(13,17,23,0.97);
-        z-index:10001; justify-content:center; align-items:center;">
-        <div style="
-            background:#161b22; border:1px solid #30363d;
-            border-radius:20px; padding:40px; max-width:500px; width:90%;
-            animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;">
+    <div id="updateComputerModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(13,17,23,0.97); z-index:10001; justify-content:center; align-items:center;">
+        <div style="background:#161b22; border:1px solid #30363d; border-radius:20px; padding:40px; max-width:500px; width:90%; animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;">
             <h3 style="color:#58a6ff; margin-top:0;">Kompüteri Yenilə</h3>
             <input type="text" id="update-pc-name" placeholder="Ad" style="width:100%;padding:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:white;box-sizing:border-box;margin-bottom:12px;">
             <input type="number" id="update-pc-price" placeholder="Qiymət (AZN)" style="width:100%;padding:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:white;box-sizing:border-box;margin-bottom:12px;">
@@ -96,16 +86,16 @@
             100% { transform: scale(1); }
         }
     </style>
-<div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
-    <div style="background:#161b22; padding:30px; border-radius:15px; width:90%; max-width:400px; border:1px solid #30363d;">
-        <h2 style="color:white; text-align:center;">Sifarişi Tamamla</h2>
-        <p style="color:#8b949e; text-align:center;">Telefon nömrənizi daxil edin:</p>
-        <input type="text" id="buyer-phone" placeholder="+994XXXXXXXXX" style="width:100%; padding:12px; margin:15px 0; border-radius:8px; border:1px solid #30363d; background:#0d1117; color:white;">
-        <button onclick="confirmOrder()" style="width:100%; padding:12px; background:#238636; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Təsdiqlə</button>
-        <button onclick="document.getElementById('orderModal').style.display='none'" style="width:100%; margin-top:10px; background:none; color:#8b949e; border:none; cursor:pointer;">Ləğv et</button>
+    
+    <div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#161b22; padding:30px; border-radius:15px; width:90%; max-width:400px; border:1px solid #30363d;">
+            <h2 style="color:white; text-align:center;">Sifarişi Tamamla</h2>
+            <p style="color:#8b949e; text-align:center;">Telefon nömrənizi daxil edin:</p>
+            <input type="text" id="buyer-phone" placeholder="+994XXXXXXXXX" style="width:100%; padding:12px; margin:15px 0; border-radius:8px; border:1px solid #30363d; background:#0d1117; color:white;">
+            <button onclick="confirmOrder()" style="width:100%; padding:12px; background:#238636; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Təsdiqlə</button>
+            <button onclick="document.getElementById('orderModal').style.display='none'" style="width:100%; margin-top:10px; background:none; color:#8b949e; border:none; cursor:pointer;">Ləğv et</button>
+        </div>
     </div>
-</div>
-
 
     <script src="profile.js"></script>
 </body>

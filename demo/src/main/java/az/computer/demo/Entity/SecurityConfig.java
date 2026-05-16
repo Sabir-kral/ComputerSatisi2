@@ -52,6 +52,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/customers").permitAll() // Qeydiyyat (Register)
+                        .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/customers/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
@@ -61,6 +63,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/customers/v1").authenticated()
                         .requestMatchers("/api/customers/selling").authenticated()
                         .requestMatchers("/api/payments/**").authenticated()
+
+                        .requestMatchers("/api/customers/profile/**").authenticated()   // Profil baxış və yeniləmə
+                        .requestMatchers("/api/customers/delete").authenticated()       // Hesab silmə
+                        .requestMatchers("/api/customers/v1").authenticated()           // Aldığım kompüterlər (Səbət)
+                        .requestMatchers("/api/customers/selling").authenticated()      // Satdığım kompüterlər
+                        .requestMatchers("/api/customers/buy").authenticated()          // Kompüter satın alma
+                        .requestMatchers("/api/customers/contact/**").authenticated()
 
                         .anyRequest().authenticated()
                 );

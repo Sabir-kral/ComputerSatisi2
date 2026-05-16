@@ -2,13 +2,64 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sifariş | TechStore</title>
     <style>
-        body { background-color: #0d1117; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .checkout-card { background: #161b22; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid #30363d; }
-        .product-item { background: #0d1117; padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #58a6ff; display: flex; justify-content: space-between; }
-        input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
-        .btn-confirm { width: 100%; padding: 14px; background: #49fb35; color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        body { 
+            background-color: #0d1117; 
+            color: white; 
+            font-family: sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+        .checkout-card { 
+            background: #161b22; 
+            padding: 40px; 
+            border-radius: 12px; 
+            width: 100%; 
+            max-width: 400px; 
+            border: 1px solid #30363d; 
+        }
+        .product-item { 
+            background: #0d1117; 
+            padding: 10px; 
+            margin-bottom: 8px; 
+            border-radius: 6px; 
+            border-left: 4px solid #58a6ff; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 15px 0; 
+            border-radius: 6px; 
+            border: 1px solid #30363d; 
+            background: #0d1117; 
+            color: white; 
+            box-sizing: border-box; 
+        }
+        input:focus {
+            outline: 1px solid #58a6ff;
+        }
+        .btn-confirm { 
+            width: 100%; 
+            padding: 14px; 
+            background: #49fb35; 
+            color: #000; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
+        .btn-confirm:disabled {
+            background: #6a737d;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -24,55 +75,116 @@
 </div>
 
 <script>
-    const token = localStorage.getItem('accessToken');
+    // Access token-i obyekt daxilindən təhlükəsiz şəkildə dartırıq
+    let token = localStorage.getItem('accessToken');
+    if (!token) {
+        const activeUserStr = localStorage.getItem('activeUser');
+        if (activeUserStr) {
+            try {
+                const activeUser = JSON.parse(activeUserStr);
+                token = activeUser.accessToken;
+            } catch(e) {
+                console.error("User token oxunarkən xəta:", e);
+            }
+        }
+    }
+    
+    // Həm səbəti, həm də tək gələn "İndi Al" məhsulunu localStoragedən oxuyuruq
     const cartItems = JSON.parse(localStorage.getItem("userCart")) || [];
+    const singleProduct = JSON.parse(localStorage.getItem("selectedPc"));
 
-    if (!token || cartItems.length === 0) location.href = 'index.html';
+    // Sifariş olunacaq əsas siyahı (Əgər singleProduct varsa tək odur, yoxdursa səbətdir)
+    let checkoutItems = [];
+    if (singleProduct) {
+        checkoutItems = [singleProduct]; // Tək məhsulu massivə salırıq ki, map funksiyası işləsin
+    } else {
+        checkoutItems = cartItems;
+    }
+
+    // Əgər token yoxdursa VƏ YA həm səbət, həm də tək məhsul boşdursa, index-ə qaytar
+    if (!token || checkoutItems.length === 0) {
+        location.href = 'index.html';
+    }
 
     const listContainer = document.getElementById('product-list');
     let totalAmount = 0;
 
-    listContainer.innerHTML = cartItems.map(pc => {
-        totalAmount += parseFloat(pc.price);
-        return `<div class="product-item"><span>${pc.name}</span><b>${pc.price} AZN</b></div>`;
+    // Siyahını ekrana çıxarırıq
+    listContainer.innerHTML = checkoutItems.map(pc => {
+        const price = parseFloat(pc.price) || 0;
+        totalAmount += price;
+        return `<div class="product-item"><span>${pc.name || 'Kompüter'}</span><b>${price} AZN</b></div>`;
     }).join('');
-    document.getElementById('final-price').innerText = totalAmount;
+
+    document.getElementById('final-price').innerText = totalAmount.toFixed(2);
 
     async function confirmOrder() {
         const phone = document.getElementById('phone').value.trim();
         const result = document.getElementById('result-message');
         const btn = document.getElementById('confirm-btn');
 
-        if (!phone) { alert("Nömrəni yazın!"); return; }
+        if (!phone) { 
+            alert("Nömrəni yazın!"); 
+            return; 
+        }
 
         btn.disabled = true;
         btn.innerText = 'İşlənilir...';
+        result.innerText = "";
 
         try {
-            // 1. Ödəniş sorğusu
+            // 1. Backend-ə checkout sorğusu göndəririk
             const res = await fetch('http://95.111.230.66:8080/api/payments/checkout', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone, computerIds: cartItems.map(p => p.id), amount: totalAmount })
+                headers: { 
+                    'Authorization': `Bearer ${token}`, 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ 
+                    phone: phone, 
+                    computerIds: checkoutItems.map(p => p.id), 
+                    amount: totalAmount 
+                })
             });
 
             if (res.ok) {
-                // 2. BAZADAN SİLMƏ (Status yoxdursa, hər birini tək-tək silirik)
-                for (let pc of cartItems) {
-                    await fetch(`http://95.111.230.66:8080/api/computers/${pc.id}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
+                // 2. Sifariş olunan kompüterləri bazadan tək-tək silirik
+                for (let pc of checkoutItems) {
+                    try {
+                        await fetch(`http://95.111.230.66:8080/api/computers/${pc.id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                    } catch (deleteErr) {
+                        console.error(`${pc.id} silinərkən xəta:`, deleteErr);
+                    }
                 }
 
-                // 3. Uğurlu mesaj və səbəti təmizləmə
-                localStorage.setItem("userCart", JSON.stringify([]));
-                result.innerHTML = "<span style='color:#49fb35;'>✅ Uğurlu oldu! Gmail-inizə baxın.</span>";
-                setTimeout(() => { location.href = 'index.html'; }, 3000);
+                // 3. Uğurlu əməliyyatdan sonra yaddaşı təmizləyirik
+                if (singleProduct) {
+                    // Əgər "İndi Al" ilə gəlibsə, müvəqqəti məhsulu silirik
+                    localStorage.removeItem("selectedPc");
+                } else {
+                    // Əgər səbətdən gəlibsə, səbəti sıfırlayırıq
+                    localStorage.setItem("userCart", JSON.stringify([]));
+                }
+
+                result.innerHTML = "<span style='color:#49fb35; font-weight:bold;'>✅ Uğurlu oldu! Gmail-inizə baxın.</span>";
+                
+                setTimeout(() => { 
+                    location.href = 'index.html'; 
+                }, 3000);
+
+            } else {
+                result.innerHTML = `<span style='color:#ff4a4a;'>Server xətası baş verdi!</span>`;
+                btn.disabled = false;
+                btn.innerText = '✅ Təsdiqlə və Al';
             }
+
         } catch (err) {
-            result.innerText = "Xəta baş verdi!";
+            result.innerHTML = "<span style='color:#ff4a4a;'>Şəbəkə xətası baş verdi!</span>";
             btn.disabled = false;
+            btn.innerText = '✅ Təsdiqlə və Al';
         }
     }
 </script>

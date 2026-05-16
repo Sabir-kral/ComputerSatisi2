@@ -1,143 +1,242 @@
-const token = localStorage.getItem('accessToken');
-if (!token) location.href = 'login.html';
+// Tokeni obyekt daxilindən təhlükəsiz və düzgün şəkildə dartırıq
+let token = localStorage.getItem('accessToken');
+if (!token) {
+    const activeUserStr = localStorage.getItem('activeUser');
+    if (activeUserStr) {
+        try {
+            const activeUser = JSON.parse(activeUserStr);
+            token = activeUser.accessToken;
+        } catch(e) {
+            console.error("User token oxunarkən xəta:", e);
+        }
+    }
+}
 
-// Səhifə açılan kimi profili yüklə
-loadProfile();
+// Əgər hələ də token yoxdursa, login səhifəsinə atır
+if (!token) window.location.href = 'login.html';
 
+// Yeniləmə zamanı backend-ə ötürmək üçün istifadəçinin emailini burada saxlayacağıq
+let currentCustomerEmail = "";
+
+document.addEventListener('DOMContentLoaded', loadProfile);
+
+// --- PROFİL MƏLUMATLARINI YÜKLƏ ---
 async function loadProfile() {
     try {
         const response = await fetch('http://95.111.230.66:8080/api/customers/profile', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!response.ok) {
-            if (response.status === 401 || response.status === 403) logout();
-            return;
+        if (response.ok) {
+            const user = await response.json();
+            document.getElementById('view-name').innerText = user.name;
+            document.getElementById('view-surname').innerText = user.surname;
+            document.getElementById('view-email').innerText = user.email;
+            
+            // Email-i qlobal dəyişənə mənimsədirik ki, update edəndə istifadə edə bilək
+            currentCustomerEmail = user.email;
+
+            // Update inputlarını doldururuq
+            if(document.getElementById('up-name')) document.getElementById('up-name').value = user.name;
+            if(document.getElementById('up-surname')) document.getElementById('up-surname').value = user.surname;
+        } else {
+            logout();
         }
-        const user = await response.json();
-        document.getElementById('view-name').innerText = user.name;
-        document.getElementById('view-surname').innerText = user.surname;
-        document.getElementById('view-email').innerText = user.email;
-    } catch (err) {
-        console.error("Profil məlumatları gəlmədi.");
-    }
+    } catch (err) { console.error("Profil xətası."); }
 }
 
-// --- HESAB MƏLUMATLARINI YENİLƏ ---
-function showUpdate() {
+// --- HTML-dəki "Məlumatları Yenilə" düyməsinin çağırdığı funksiya ---
+window.showUpdate = function() {
     hideAllSections();
-    document.getElementById('profile-view').style.display = 'none';
-    document.getElementById('update-form').style.display = 'block';
-}
+    const updateForm = document.getElementById("update-form");
+    if(updateForm) updateForm.style.display = "block";
+};
 
-async function processUpdate() {
-    const currentEmail = document.getElementById('view-email').innerText;
-    const data = {
-        name: document.getElementById('up-name').value,
-        surname: document.getElementById('up-surname').value,
-        email: currentEmail,
-        password: document.getElementById('up-pass').value
+// --- REDAKTƏ EDİB YADDA SAXLA (Java-ya Tam Uyğunlaşdırılmış) ---
+window.processUpdate = async function() {
+    const name = document.getElementById('up-name').value;
+    const surname = document.getElementById('up-surname').value;
+    const password = document.getElementById('up-pass').value;
+
+    if(!name || !surname) {
+        alert("Ad və Soyad boş qala bilməz!");
+        return;
+    }
+
+    if(!currentCustomerEmail) {
+        alert("İstifadəçi emaili tapılmadı, zəhmət olmasa səhifəni yeniləyin.");
+        return;
+    }
+
+    // Java-dakı CustomerRequest obyektinə uyğun bədən (body)
+    // Qeyd: Əgər backend CustomerRequest-də şifrə sahəsini fərqli adlandırıbsa (məs: password), bura yazılmalıdır.
+    const updateData = { 
+        name: name, 
+        surname: surname,
+        email: currentCustomerEmail // Request obyektinin boş qalmaması üçün email-i də daxil edirik
     };
+    
+    if(password) {
+        updateData.password = password; 
+    }
 
     try {
-        const response = await fetch(`http://95.111.230.66:8080/api/customers/profile?email=${encodeURIComponent(currentEmail)}`, {
+        // Backend @RequestParam String email gözlədiyi üçün URL-ə ?email= dəyərini əlavə edirik
+        const res = await fetch(`http://95.111.230.66:8080/api/customers/profile?email=${encodeURIComponent(currentCustomerEmail)}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(updateData)
         });
 
-        if (response.ok) {
-            alert("Profil yeniləndi!");
-            location.reload();
+        if(res.ok) {
+            alert("Məlumatlarınız uğurla yeniləndi!");
+            location.reload(); 
         } else {
-            alert("Yeniləmə zamanı xəta!");
+            alert("Yenilənmə zamanı xəta baş verdi (Status: " + res.status + ")");
         }
-    } catch (err) { alert("Bağlantı xətası!"); }
-}
-
-// --- HESABI TAMAMİLƏ SİLMƏ ---
-async function deleteAccount() {
-    if (confirm("Hesabınızı və bütün elanlarınızı silmək istədiyinizə əminsiniz?")) {
-        try {
-            const res = await fetch('http://95.111.230.66:8080/api/customers/delete', {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                alert("Hesabınız silindi.");
-                // Hesab silinəndə hər şeyi təmizləmək olar
-                localStorage.clear(); 
-                location.href = 'index.html';
-            }
-        } catch (err) { alert("Silmə zamanı xəta!"); }
+    } catch(err) {
+        alert("Şəbəkə xətası baş verdi.");
     }
-}
+};
 
-// --- SƏBƏT (ALDIĞIM KOMPÜTERLƏR) İDARƏSİ ---
-function getMyComputers() {
-    const area = document.getElementById("my-computers-area");
-    const container = document.getElementById("pc-list-content");
-    const summaryArea = document.getElementById("checkout-summary");
-
+// --- SATDIĞIM KOMPÜTERLƏRİ GƏTİR ---
+window.getSellingComputers = async function() {
+    const container = document.getElementById("pc-list-content-selling");
     hideAllSections();
-    area.style.display = "block";
+    document.getElementById("my-computers-area-selling").style.display = "block";
+    container.innerHTML = "<p>Yüklənir...</p>";
 
-    // Səbəti lokal yaddaşdan oxuyuruq
-    const cartItems = JSON.parse(localStorage.getItem("userCart")) || [];
+    try {
+        const res = await fetch('http://95.111.230.66:8080/api/customers/selling', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const ads = await res.json();
+        
+        if (!ads || ads.length === 0) {
+            container.innerHTML = "<p>Heç bir elanınız yoxdur.</p>";
+            return;
+        }
 
-    if (cartItems.length === 0) {
-        container.innerHTML = "<p style='color:#8b949e; text-align:center;'>Səbətiniz hazırda boşdur.</p>";
-        if(summaryArea) summaryArea.style.display = "none";
-        return;
-    }
-
-    if(summaryArea) summaryArea.style.display = "block";
-    let totalPrice = 0;
-
-    container.innerHTML = cartItems.map((pc, index) => {
-        totalPrice += parseFloat(pc.price);
-        return `
-        <div style="background:#161b22; border:1px solid #30363d; border-radius:10px; padding:15px; margin-bottom:10px; display:flex; align-items:center; gap:15px;">
-            <img src="${pc.img || 'placeholder.png'}" style="width:60px; height:60px; object-fit:cover; border-radius:5px;">
-            <div style="flex:1;">
-                <h4 style="margin:0; color:white;">${pc.name}</h4>
-                <p style="margin:0; color:#58a6ff; font-weight:bold;">${pc.price} AZN</p>
+        container.innerHTML = ads.map(pc => `
+            <div style="background:#161b22; border:1px solid #30363d; padding:15px; margin-bottom:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h4 style="color:white; margin:0;">${pc.name}</h4>
+                    <p style="color:#49fb35; margin:5px 0 0 0;">${pc.price} AZN</p>
+                </div>
+                <button onclick="deleteAd(${pc.id})" style="background:#da3633; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer;">Sil</button>
             </div>
-            <button onclick="removeFromCart(${index})" style="background:#da3633; color:white; border:none; padding:5px 12px; border-radius:5px; cursor:pointer; font-size:12px;">Səbətdən Sil</button>
-        </div>`;
-    }).join('');
+        `).join('');
+    } catch (err) { container.innerHTML = "<p>Məlumat gəlmədi.</p>"; }
+};
 
-    document.getElementById('total-price-display').innerText = totalPrice;
-}
+// --- ALDIĞIM KOMPÜTERLƏR ---
+// --- ALDIĞIM KOMPÜTERLƏR (Java ilə Tam Sinxronlaşdırılmış) ---
+window.getMyComputers = async function() {
+    const container = document.getElementById("pc-list-content");
+    const checkoutSummary = document.getElementById("checkout-summary");
+    
+    hideAllSections(); 
+    document.getElementById("my-computers-area").style.display = "block"; 
+    container.innerHTML = "<p>Yüklənir...</p>";
+    if(checkoutSummary) checkoutSummary.style.display = "none"; // İlkin olaraq gizlədək
 
-function removeFromCart(index) {
-    let cartItems = JSON.parse(localStorage.getItem("userCart")) || [];
-    cartItems.splice(index, 1); // Seçilən məhsulu massivdən çıxar
-    localStorage.setItem("userCart", JSON.stringify(cartItems)); // Yenilənmiş səbəti yadda saxla
-    getMyComputers(); // Siyahını yenilə
-}
+    try {
+        // Java Controller-dəki @GetMapping("/v1") endpointinə sorğu atırıq (getAllBought)
+        const res = await fetch('http://95.111.230.66:8080/api/customers/v1', { 
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const boughtItems = await res.json();
+            
+            if (!boughtItems || boughtItems.length === 0) {
+                container.innerHTML = "<p>Hələ ki real olaraq heç bir kompüter almamısınız.</p>";
+                return;
+            }
+            
+            // Alınan kompüterləri ekranda göstəririk
+            container.innerHTML = boughtItems.map(pc => `
+                <div style="background:#161b22; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; border-radius:8px; border-left: 4px solid #8957e5; align-items:center;">
+                    <span style="color:white; font-weight:bold;">${pc.name}</span>
+                    <b style="color:#49fb35;">${pc.price} AZN (Alındı)</b>
+                </div>
+            `).join('');
 
-function goToCheckout() {
-    const cartItems = JSON.parse(localStorage.getItem("userCart")) || [];
-    if (cartItems.length === 0) {
-        alert("Səbətiniz boşdur!");
-        return;
+            // --- SƏBƏT CƏMİ MƏNTİQİ ---
+            // Əgər bu kompüterlər hələ "Səbət" statusundadırsa və ümumi qiymət göstərmək lazımdırsa:
+            let totalPrice = 0;
+            boughtItems.forEach(item => {
+                totalPrice += Number(item.price) || 0;
+            });
+
+            const totalPriceDisplay = document.getElementById('total-price-display');
+            if (totalPriceDisplay && totalPrice > 0) {
+                totalPriceDisplay.innerText = totalPrice;
+                if(checkoutSummary) checkoutSummary.style.display = "block"; // Sifariş formunu açırıq
+            }
+
+        } else {
+            container.innerHTML = "<p>Məlumat gəlmədi (Status: " + res.status + ")</p>";
+        }
+    } catch (err) {
+        console.error("Kompüterləri gətirərkən xəta:", err);
+        container.innerHTML = "<p>Şəbəkə xətası səbəbindən məlumat gəlmədi.</p>";
     }
-    location.href = 'checkout.html';
-}
+};
 
-// --- KÖMƏKÇİ FUNKSİYALAR ---
-function hideAllSections() {
-    document.getElementById('update-form').style.display = 'none';
-    document.getElementById('my-computers-area').style.display = 'none';
-    document.getElementById('profile-view').style.display = 'block';
-}
+// --- ELAN SİLMƏK ---
+window.deleteAd = async function(id) {
+    if (!confirm("Bu elanı silmək istədiyinizdən əminsiniz?")) return;
+    try {
+        const res = await fetch(`http://95.111.230.66:8080/api/computers/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            alert("Elan uğurla silindi.");
+            getSellingComputers(); 
+        } else {
+            alert("Silinmə zamanı xəta oldu.");
+        }
+    } catch (err) { alert("Şəbəkə xətası baş verdi."); }
+};
 
-function logout() {
-    // ƏSAS DÜZƏLİŞ: localStorage.clear() etmirik!
-    // Səbətin (userCart) silinməməsi üçün yalnız tokeni silirik.
+// --- HESABI SİLMƏK (Java-dakı /delete endpointinə uyğunlaşdırıldı) ---
+window.deleteAccount = async function() {
+    if(!confirm("Hesabınızı silmək istədiyinizdən əminsiniz?")) return;
+    try {
+        const res = await fetch('http://95.111.230.66:8080/api/customers/delete', {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if(res.ok) {
+            alert("Hesabınız silindi.");
+            logout();
+        } else {
+            alert("Silinmə zamanı xəta oldu.");
+        }
+    } catch(err) { alert("Xəta baş verdi."); }
+};
+
+// --- NAVİQASİYA VƏ ÇIXIŞ ---
+window.addComputer = () => window.location.href = 'add-computer.html';
+window.goToCheckout = () => window.location.href = 'checkout.html';
+window.logout = () => { 
     localStorage.removeItem('accessToken'); 
-    location.href = 'index.html';
+    localStorage.removeItem('selectedPc'); 
+    window.location.href = 'index.html'; 
+};
+
+// Geri düyməsinin funksiyası
+window.goBack = function() {
+    window.location.href = 'index.html';
+};
+
+function hideAllSections() {
+    ['update-form', 'my-computers-area', 'my-computers-area-selling', 'selling-area'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+    });
 }
