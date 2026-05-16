@@ -32,7 +32,7 @@ async function loadProfile() {
             document.getElementById('view-surname').innerText = user.surname;
             document.getElementById('view-email').innerText = user.email;
             
-            // Email-i qlobal dəyişənə mənimsədirik ki, update edəndə istifadə edə bilək
+            // Email-i qlobal dəyişənə mənimsədirik
             currentCustomerEmail = user.email;
 
             // Update inputlarını doldururuq
@@ -41,7 +41,9 @@ async function loadProfile() {
         } else {
             logout();
         }
-    } catch (err) { console.error("Profil xətası."); }
+    } catch (err) { 
+        console.error("Profil yüklənərkən xəta baş verdi:", err); 
+    }
 }
 
 // --- HTML-dəki "Məlumatları Yenilə" düyməsinin çağırdığı funksiya ---
@@ -51,7 +53,7 @@ window.showUpdate = function() {
     if(updateForm) updateForm.style.display = "block";
 };
 
-// --- REDAKTƏ EDİB YADDA SAXLA (Java-ya Tam Uyğunlaşdırılmış) ---
+// --- REDAKTƏ EDİB YADDA SAXLA ---
 window.processUpdate = async function() {
     const name = document.getElementById('up-name').value;
     const surname = document.getElementById('up-surname').value;
@@ -67,12 +69,10 @@ window.processUpdate = async function() {
         return;
     }
 
-    // Java-dakı CustomerRequest obyektinə uyğun bədən (body)
-    // Qeyd: Əgər backend CustomerRequest-də şifrə sahəsini fərqli adlandırıbsa (məs: password), bura yazılmalıdır.
     const updateData = { 
         name: name, 
         surname: surname,
-        email: currentCustomerEmail // Request obyektinin boş qalmaması üçün email-i də daxil edirik
+        email: currentCustomerEmail 
     };
     
     if(password) {
@@ -80,7 +80,6 @@ window.processUpdate = async function() {
     }
 
     try {
-        // Backend @RequestParam String email gözlədiyi üçün URL-ə ?email= dəyərini əlavə edirik
         const res = await fetch(`http://95.111.230.66:8080/api/customers/profile?email=${encodeURIComponent(currentCustomerEmail)}`, {
             method: 'PUT',
             headers: {
@@ -102,18 +101,20 @@ window.processUpdate = async function() {
 };
 
 // --- SATDIĞIM KOMPÜTERLƏRİ GƏTİR ---
-window.getSellingComputers = async function() {
+window.getSellingComputers = function() {
     const container = document.getElementById("pc-list-content-selling");
     hideAllSections();
-    document.getElementById("my-computers-area-selling").style.display = "block";
+    
+    const areaSelling = document.getElementById("my-computers-area-selling");
+    if(areaSelling) areaSelling.style.display = "block";
+    
     container.innerHTML = "<p>Yüklənir...</p>";
 
-    try {
-        const res = await fetch('http://95.111.230.66:8080/api/customers/selling', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const ads = await res.json();
-        
+    fetch('http://95.111.230.66:8080/api/customers/selling', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(ads => {
         if (!ads || ads.length === 0) {
             container.innerHTML = "<p>Heç bir elanınız yoxdur.</p>";
             return;
@@ -128,22 +129,26 @@ window.getSellingComputers = async function() {
                 <button onclick="deleteAd(${pc.id})" style="background:#da3633; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer;">Sil</button>
             </div>
         `).join('');
-    } catch (err) { container.innerHTML = "<p>Məlumat gəlmədi.</p>"; }
+    })
+    .catch(err => { 
+        container.innerHTML = "<p>Məlumat gəlmədi (403 və ya Şəbəkə xətası).</p>"; 
+    });
 };
 
-// --- ALDIĞIM KOMPÜTERLƏR ---
-// --- ALDIĞIM KOMPÜTERLƏR (Java ilə Tam Sinxronlaşdırılmış) ---
+// --- ALDIĞIM KOMPÜTERLƏR (SƏBƏT) ---
 window.getMyComputers = async function() {
     const container = document.getElementById("pc-list-content");
     const checkoutSummary = document.getElementById("checkout-summary");
     
     hideAllSections(); 
-    document.getElementById("my-computers-area").style.display = "block"; 
+    const myCcArea = document.getElementById("my-computers-area");
+    if(myCcArea) myCcArea.style.display = "block"; 
+    
     container.innerHTML = "<p>Yüklənir...</p>";
-    if(checkoutSummary) checkoutSummary.style.display = "none"; // İlkin olaraq gizlədək
+    if(checkoutSummary) checkoutSummary.style.display = "none"; 
 
     try {
-        // Java Controller-dəki @GetMapping("/v1") endpointinə sorğu atırıq (getAllBought)
+        // DÜZƏLİŞ: /api/computers/bought yox, tam konfiqurasiya olunmuş /api/customers/v1 çağrılır
         const res = await fetch('http://95.111.230.66:8080/api/customers/v1', { 
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -156,7 +161,6 @@ window.getMyComputers = async function() {
                 return;
             }
             
-            // Alınan kompüterləri ekranda göstəririk
             container.innerHTML = boughtItems.map(pc => `
                 <div style="background:#161b22; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; border-radius:8px; border-left: 4px solid #8957e5; align-items:center;">
                     <span style="color:white; font-weight:bold;">${pc.name}</span>
@@ -164,8 +168,7 @@ window.getMyComputers = async function() {
                 </div>
             `).join('');
 
-            // --- SƏBƏT CƏMİ MƏNTİQİ ---
-            // Əgər bu kompüterlər hələ "Səbət" statusundadırsa və ümumi qiymət göstərmək lazımdırsa:
+            // Qiymət cəmləmə bloku
             let totalPrice = 0;
             boughtItems.forEach(item => {
                 totalPrice += Number(item.price) || 0;
@@ -174,15 +177,14 @@ window.getMyComputers = async function() {
             const totalPriceDisplay = document.getElementById('total-price-display');
             if (totalPriceDisplay && totalPrice > 0) {
                 totalPriceDisplay.innerText = totalPrice;
-                if(checkoutSummary) checkoutSummary.style.display = "block"; // Sifariş formunu açırıq
+                if(checkoutSummary) checkoutSummary.style.display = "block"; 
             }
-
         } else {
             container.innerHTML = "<p>Məlumat gəlmədi (Status: " + res.status + ")</p>";
         }
     } catch (err) {
-        console.error("Kompüterləri gətirərkən xəta:", err);
-        container.innerHTML = "<p>Şəbəkə xətası səbəbindən məlumat gəlmədi.</p>";
+        console.error("Xəta:", err);
+        container.innerHTML = "<p>Şəbəkə xətası baş verdi.</p>";
     }
 };
 
@@ -196,14 +198,14 @@ window.deleteAd = async function(id) {
         });
         if (res.ok) {
             alert("Elan uğurla silindi.");
-            getSellingComputers(); 
+            window.getSellingComputers(); 
         } else {
             alert("Silinmə zamanı xəta oldu.");
         }
     } catch (err) { alert("Şəbəkə xətası baş verdi."); }
 };
 
-// --- HESABI SİLMƏK (Java-dakı /delete endpointinə uyğunlaşdırıldı) ---
+// --- HESABI SİLMƏK ---
 window.deleteAccount = async function() {
     if(!confirm("Hesabınızı silmək istədiyinizdən əminsiniz?")) return;
     try {
@@ -213,7 +215,7 @@ window.deleteAccount = async function() {
         });
         if(res.ok) {
             alert("Hesabınız silindi.");
-            logout();
+            window.logout();
         } else {
             alert("Silinmə zamanı xəta oldu.");
         }
@@ -229,7 +231,6 @@ window.logout = () => {
     window.location.href = 'index.html'; 
 };
 
-// Geri düyməsinin funksiyası
 window.goBack = function() {
     window.location.href = 'index.html';
 };
