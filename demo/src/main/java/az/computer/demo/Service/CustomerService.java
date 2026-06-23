@@ -200,10 +200,17 @@ public class CustomerService {
         userRepo.delete(user);
         logService.add("Customer deleted with email: "+user.getEmail(),"CUSTOMER_DELETED");
     }
-
+@Transactional(readOnly = true)
 public List<ComputerResponse> getAllBought(){
     String email = SecurityContextHolder.getContext().getAuthentication().getName();
-    CustomerEntity customer = customerRepo.findByEmail(email).orElseThrow(()->new RuntimeException("Not Found"));
+    // Bura diqqət et: .orElseThrow-dan sonra siyahını mütləq "çağırmalıyıq"
+    CustomerEntity customer = customerRepo.findByEmail(email)
+                                          .orElseThrow(()->new RuntimeException("Not Found"));
+    
+    // LAZY loading problemini həll etmək üçün siyahının ölçüsünü yoxlayırıq 
+    // və ya Hibernate-i məcbur edirik ki, məlumatı çəksin
+    int size = customer.getBoughtComputers().size(); 
+    
     return ComputerMapper.toDTOList(customer.getBoughtComputers());
 }
 

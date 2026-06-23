@@ -54,19 +54,20 @@ public class ComputerService {
         return ComputerMapper.toDTO(computer);
     }
 
-    public MessageResponse update(Long id, ComputerRequest request){
-        ComputerEntity computer = computerRepo.findById(id).orElseThrow(()->new RuntimeException("Not Found"));
-        computer.setName(request.getName());
-        computer.setDescription(request.getDescription());
-        computer.setPrice(request.getPrice());
+@Transactional
+public MessageResponse update(Long id, ComputerRequest request){
+    ComputerEntity computer = computerRepo.findById(id)
+            .orElseThrow(()->new RuntimeException("Not Found"));
+            
+    computer.setName(request.getName());
+    computer.setDescription(request.getDescription());
+    computer.setPrice(request.getPrice());
+    
+    // Şəkilləri də yeniləmək istəyirsənsə bura əlavə kod yazmalısan
+    computerRepo.save(computer);
 
-        // Update zamanı şəkilləri də yeniləmək olar (isteğe bağlı)
-        computerRepo.save(computer);
-
-        MessageResponse messageResponse = new MessageResponse();
-        messageResponse.setMessage("Updated successfully");
-        return messageResponse;
-    }
+    return new MessageResponse("Updated successfully");
+}
 
     public ComputerResponse id(Long id){
         ComputerEntity computer = computerRepo.findById(id).orElseThrow(()->new RuntimeException("Not Found"));
