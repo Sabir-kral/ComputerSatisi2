@@ -1,9 +1,11 @@
 package az.computer.demo.Response;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
-@NoArgsConstructer
+@NoArgsConstructor
 @AllArgsConstructor
 public class MessageResponse {
 
