@@ -35,11 +35,11 @@ public class CustomerEntity {
     )
     private List<ComputerEntity> sellingComputers;
 
-    @ManyToMany
-    @JoinTable(
-            name = "bought_customer_computers",
-            joinColumns = @JoinColumn(name = "customer_id"),
-            inverseJoinColumns = @JoinColumn(name = "computer_id")
-    )
-    private List<ComputerEntity> boughtComputers;
+@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+@JoinTable(
+        name = "bought_customer_computers",
+        joinColumns = @JoinColumn(name = "customer_id"),
+        inverseJoinColumns = @JoinColumn(name = "computer_id")
+)
+private List<ComputerEntity> boughtComputers = new ArrayList<>();
 }

@@ -201,11 +201,11 @@ public class CustomerService {
         logService.add("Customer deleted with email: "+user.getEmail(),"CUSTOMER_DELETED");
     }
 
-    public List<ComputerResponse> getAllBought(){
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        CustomerEntity customer = customerRepo.findByEmail(email).orElseThrow(()->new RuntimeException("Not Found"));
-        return ComputerMapper.toDTOList(customer.getBoughtComputers());
-    }
+public List<ComputerResponse> getAllBought(){
+    String email = SecurityContextHolder.getContext().getAuthentication().getName();
+    CustomerEntity customer = customerRepo.findByEmail(email).orElseThrow(()->new RuntimeException("Not Found"));
+    return ComputerMapper.toDTOList(customer.getBoughtComputers());
+}
 
     public List<ComputerResponse> getAll() {
         List<ComputerEntity> allComputers = computerRepo.findAll();
