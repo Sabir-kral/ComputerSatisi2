@@ -6,7 +6,11 @@ import az.computer.demo.Repo.*;
 import az.computer.demo.Request.CustomerRequest;
 import az.computer.demo.Response.*;
 import jakarta.mail.MessagingException;
-import jakarta.transaction.Transactional;
+// SƏHV OLAN:
+// import jakarta.transaction.Transactional; 
+
+// DÜZGÜN OLAN:
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
