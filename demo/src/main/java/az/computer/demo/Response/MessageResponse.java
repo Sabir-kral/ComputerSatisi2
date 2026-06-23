@@ -12,5 +12,8 @@ public class MessageResponse {
     private String message;
     private Boolean isVerified;
 
-
+public MessageResponse(String message) {
+        this.message = message;
+        this.isVerified = true; 
+    }
 }
