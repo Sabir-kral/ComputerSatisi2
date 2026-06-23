@@ -64,8 +64,8 @@ public class CustomerController {
         return service.getSelling();
     }
 
-    @PostMapping("/buy")
-    public MessageResponse buyComputer(@RequestParam Long id) {
+    @PostMapping("/buy/{id}")
+    public MessageResponse buyComputer(@PathVariable Long id) {
         return service.buyComputer(id);
     }
 }

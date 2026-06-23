@@ -187,7 +187,7 @@
                         <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:25px;">
                             <button class="back-btn" style="background:#30363d;" onclick="closeDetails()">← GERİ</button>
                             <button class="back-btn" style="background:var(--green); color:#000;" onclick="buyComputer(${pc.id}, '${pc.name}', ${pc.price})">İNDİ AL</button>
-                            <button class="back-btn" style="background:var(--yellow); color:#000;" onclick="addToCart({id: ${pc.id}, name: '${pc.name}', price: ${pc.price}, img: '${img}'})">🛒 SƏBƏTƏ AT</button>
+                            <button class="back-btn" style="background:var(--yellow); color:#000;" onclick="addToCart(id: ${pc.id})">🛒 SƏBƏTƏ AT</button>
                         </div>
                     </div>
                 `;
@@ -198,16 +198,26 @@
             }
         }
 
-        function addToCart(product) {
-            let cart = JSON.parse(localStorage.getItem("userCart")) || [];
-            if (cart.some(item => item.id === product.id)) {
-                alert("Bu məhsul artıq səbətdədir!");
-                return;
+async function addToCart(id) {
+    const token = localStorage.getItem("accessToken")
+    try {
+        const res = await fetch(`http://95.111.230.66:8080/api/customers/buy/${id}`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            cart.push(product);
-            localStorage.setItem("userCart", JSON.stringify(cart));
-            alert("Məhsul səbətə əlavə edildi!");
+        });
+
+        if (res.ok) {
+            alert("Məhsul uğurla alındı!");
+        } else {
+            alert("Xəta baş verdi: " + res.status);
         }
+    } catch(err) {
+        console.error("Şəbəkə xətası:", err);
+    }
+}
 
         function buyComputer(id, name, price) {
             const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
