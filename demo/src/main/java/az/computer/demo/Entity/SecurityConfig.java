@@ -61,7 +61,7 @@ public class SecurityConfig {
                         // YALNIZ ADMIN üçün olan endpoint-lər
                         .requestMatchers(HttpMethod.POST, "/api/computers/add").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/computers/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/computers/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/computers/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN","ROLE_CUSTOMER")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
 
                         // MÜŞTƏRİ VƏ ADMİN üçün autentifikasiya tələb olunan endpoint-lər
