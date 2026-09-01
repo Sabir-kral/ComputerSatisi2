@@ -333,8 +333,7 @@ function hideAllSections() {
             if (btn) btn.style.display = 'inline-flex';
         }
     } catch (err) {
-                    const btn = document.getElementById('admin-panel-btn');
-            if (btn) btn.style.display = 'inline-flex';
+
     }
 })();
 function admin(){

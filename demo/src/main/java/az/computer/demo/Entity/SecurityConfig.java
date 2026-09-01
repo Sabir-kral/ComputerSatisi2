@@ -56,7 +56,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/customers").permitAll() // Qeydiyyat
                         .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
-                        .requestMatchers("/api/admin/check").permitAll()
+                        .requestMatchers("/api/admin/check").hasAuthority("ROLE_ADMIN")
 
                         .requestMatchers("/api/computers/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN")
