@@ -48,7 +48,7 @@ async function verify() {
     } catch (err) {
         console.error("Verify xətası:", err);
         result.style.color = "#f87171";
-        result.innerText = "Bağlantı xətası! Serveri yoxlayın.";
+        result.innerText = "Yanlış təsdiq kodu, zəhmət olmasa yenidən cəhd edin.";
     }
 }
 
@@ -80,6 +80,6 @@ async function resendOTP() {
     } catch (err) {
         console.error("Resend xətası:", err);
         result.style.color = "#f87171";
-        result.innerText = "Bağlantı xətası! İnterneti yoxlayın.";
+        result.innerText = "Xəta baş verdi, zəhmət olmasa bir az gözləyin və yenidən cəhd edin.";
     }
 }

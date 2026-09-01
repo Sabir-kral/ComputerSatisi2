@@ -23,6 +23,6 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             alert("Xəta: " + (data.message || "Email və ya şifrə yanlışdır!"));
         }
     } catch (err) {
-        alert("Serverə bağlanmaq mümkün olmadı!");
+        alert("Məlumatlar yanlışdır və ya hesabınız bloklanıb!");
     }
 });

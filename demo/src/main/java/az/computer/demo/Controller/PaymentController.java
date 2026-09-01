@@ -1,7 +1,6 @@
 package az.computer.demo.Controller;
 
 import az.computer.demo.Entity.ComputerEntity;
-import az.computer.demo.Entity.CustomerEntity;
 import az.computer.demo.Repo.ComputerRepo;
 import az.computer.demo.Request.OrderRequest;
 import az.computer.demo.Service.MailService;
@@ -22,39 +21,34 @@ public class PaymentController {
 
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(@RequestBody OrderRequest request) throws MessagingException {
-        // 1. Alıcının emailini SecurityContext-den tapırıq
+        // 1. Alıcının emailini SecurityContext-dən alırıq
         String buyerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 2. Her bir kompüter ID-si üçün dövr işe düşür
+        // Kart nömrəni bura əlavə et:
+        String bankCardNumber = "4169 7388 XXXX XXXX";
+
+        // 2. Hər bir kompüter ID-si üçün dövr işə düşür
         for (Long cpId : request.getComputerIds()) {
             ComputerEntity computer = computerRepo.findById(cpId)
                     .orElseThrow(() -> new RuntimeException("Kompüter tapılmadı ID: " + cpId));
 
-            if (computer.getSellers() != null && !computer.getSellers().isEmpty()) {
-                CustomerEntity seller = computer.getSellers().get(0);
-                String sellerEmail = seller.getEmail();
+            // 3. ALICIYA GÖNDƏRİLƏN MAİL (Ödəniş təlimatı və kart nömrəsi)
+            mailService.sendBuyerOrderNotification(
+                    buyerEmail,
+                    computer.getName(),
+                    computer.getPrice(),
+                    bankCardNumber
+            );
 
-                // 3. Alıcıya ve Satıcıya standart bildirişler gedir
-                mailService.sendOrderNotifications(
-                        buyerEmail,
-                        sellerEmail,
-                        computer.getName(),
-                        computer.getPrice(),
-                        request.getPhone()
-                );
-
-                // 4. ADMİNE (SENE) GEDEN ÖZEL BİLDİRİŞ
-                // Bu metodu MailService-de aşağıda teyin edirik
-                mailService.sendAdminOrderAlert(
-                        sellerEmail,
-                        buyerEmail,
-                        request.getPhone(),
-                        computer.getName(),
-                        computer.getPrice()
-                );
-            }
+            // 4. ADMİNE (SƏNƏ) GÖNDƏRİLƏN ÖZƏL BİLDİRİŞ (Alıcının tam nömrəsi ilə)
+            mailService.sendAdminOrderAlert(
+                    buyerEmail,
+                    request.getPhone(),
+                    computer.getName(),
+                    computer.getPrice()
+            );
         }
 
-        return ResponseEntity.ok("Sifariş tamamlandı. Admin ve terefler melumatlandırıldı.");
+        return ResponseEntity.ok("Sifariş tamamlandı. Alıcıya ödəniş məlumatları və admine bildiriş göndərildi.");
     }
 }

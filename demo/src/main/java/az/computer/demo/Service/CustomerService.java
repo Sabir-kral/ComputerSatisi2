@@ -107,13 +107,9 @@ public class CustomerService {
             }
         }
 
-        // Alıcının alınanlar (səbət/alınanlar) siyahısına əlavə edirik
+        // Alıcının alınanlar siyahısına əlavə edirik
         buyer.getBoughtComputers().add(computer);
         customerRepo.save(buyer);
-
-        // DÜZƏLİŞ: computerRepo.delete(computer); SƏTRİ SİLİNDİ!
-        // Çünki DB-dən silinəndə relationship tərəfdə də itirdi.
-        // İndi sadəcə bazada qalır, amma heç bir satıcıda olmadığı üçün ana səhifədə (getAll) görünməyəcək.
 
         logService.add("Customer " + buyer.getEmail() + " bought PC ID: " + computerId, "CUSTOMER_BOUGHT");
 
@@ -122,6 +118,10 @@ public class CustomerService {
         return response;
     }
 
+    /**
+     * YENİLƏNMİŞ SİFARİŞ METODU
+     * Artıq alıcıya ödəniş təlimatı və kart nömrəsini, admine isə alıcının məlumatlarını göndərir.
+     */
     public MessageResponse contactSeller(Long computerId, String phone) throws MessagingException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         CustomerEntity buyer = customerRepo.findByEmail(email)
@@ -130,23 +130,29 @@ public class CustomerService {
         ComputerEntity computer = computerRepo.findById(computerId)
                 .orElseThrow(() -> new RuntimeException("Computer not found"));
 
-        String sellerEmail = null;
-        if (computer.getSellers() != null && !computer.getSellers().isEmpty()) {
-            sellerEmail = computer.getSellers().get(0).getEmail();
-        }
+        // Öz kart nömrəni bura əlavə et:
+        String bankCardNumber = "4169 7388 XXXX XXXX";
 
-        mailService.sendOrderNotifications(
+        // 1. Alıcıya ödəniş təlimatı və kart nömrəsini göndər
+        mailService.sendBuyerOrderNotification(
                 buyer.getEmail(),
-                sellerEmail,
                 computer.getName(),
                 computer.getPrice(),
-                phone
+                bankCardNumber
         );
 
-        logService.add("Customer " + buyer.getEmail() + " contacted seller for PC ID: " + computerId, "CUSTOMER_CONTACTED_SELLER");
+        // 2. Admine (Sənə) alıcının əlaqə nömrəsi və məhsul haqqında məlumat göndər
+        mailService.sendAdminOrderAlert(
+                buyer.getEmail(),
+                phone,
+                computer.getName(),
+                computer.getPrice()
+        );
+
+        logService.add("Customer " + buyer.getEmail() + " ordered PC ID: " + computerId, "CUSTOMER_ORDERED");
 
         MessageResponse response = new MessageResponse();
-        response.setMessage("Satıcıya bildiriş göndərildi");
+        response.setMessage("Sifarişiniz qəbul olundu. Ödəniş təlimatı e-poçt ünvanınıza göndərildi.");
         return response;
     }
 

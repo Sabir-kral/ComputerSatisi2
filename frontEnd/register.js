@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (err) {
                 // Əgər bura düşürsənsə, deməli ya kodda sintaksis səhvi var, ya da internet kəsilib
                 console.error("Detallı xəta:", err);
-                alert("Sistem xətası! Konsola (F12) baxın.");
+                alert("Belə bir istifadəçi artıq mövcuddur, zəhmət olmasa başqa e-poçt seçin.");
             }
         });
     }
