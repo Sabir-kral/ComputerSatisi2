@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "cart")
@@ -22,6 +24,7 @@ public class CartEntity {
 
     @ManyToOne
     @JoinColumn(name = "computer_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private ComputerEntity computer;
 
     private Integer quantity;
