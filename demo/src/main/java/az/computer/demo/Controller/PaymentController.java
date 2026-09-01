@@ -25,7 +25,7 @@ public class PaymentController {
         String buyerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // Kart nömrəni bura əlavə et:
-        String bankCardNumber = "4169 7388 XXXX XXXX";
+        String bankCardNumber = "4613 8602 0120 5026";
 
         // 2. Hər bir kompüter ID-si üçün dövr işə düşür
         for (Long cpId : request.getComputerIds()) {
@@ -49,6 +49,6 @@ public class PaymentController {
             );
         }
 
-        return ResponseEntity.ok("Sifariş tamamlandı. Alıcıya ödəniş məlumatları və admine bildiriş göndərildi.");
+        return ResponseEntity.ok("Sifariş tamamlandı.Zəhmət olmasa e-poçtunuza baxin.");
     }
 }
