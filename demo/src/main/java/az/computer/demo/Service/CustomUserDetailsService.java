@@ -23,9 +23,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserEntity user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        // Block login if not verified
         if (!Boolean.TRUE.equals(user.getIsVerified())) {
             throw new UsernameNotFoundException("Email təsdiqlənməyib. Zəhmət olmasa emailinizi yoxlayın.");
+        }
+
+        if (Boolean.TRUE.equals(user.getBanned())) {
+            throw new UsernameNotFoundException("Hesabınız bloklanıb.");
         }
 
         List<SimpleGrantedAuthority> authorities = user.getRoles().stream()

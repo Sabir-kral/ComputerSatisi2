@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - az.computer.demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #22c55e;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        header h1 i {
+            color: var(--primary);
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background-color: var(--border);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            color: var(--text-color);
+        }
+
+        .promote-form {
+            display: flex;
+            gap: 1rem;
+            max-width: 500px;
+        }
+
+        input {
+            flex: 1;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-color);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        button.btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button.btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge.active {
+            background-color: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+        }
+
+        .badge.banned {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:hover {
+            opacity: 0.85;
+        }
+
+        .btn-ban { background-color: var(--danger); }
+        .btn-unban { background-color: var(--success); }
+        .btn-edit { background-color: var(--primary); }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-color);
+        }
+        .btn-secondary:hover {
+            background-color: var(--border);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-shield-halved"></i> Admin Panel</h1>
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Əsas səhifə</a>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('users')">İstifadəçilər</button>
+            <button class="tab-btn" onclick="switchTab('computers')">Kompüterlər</button>
+            <button class="tab-btn" onclick="switchTab('admins')">Admin Təyini</button>
+        </div>
+
+        <!-- USERS TAB -->
+        <div id="users-tab" class="tab-content active">
+            <div class="card">
+                <h3>Qeydiyyatdan Keçmiş İstifadəçilər</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Ad</th>
+                            <th>Soyad</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Əməliyyatlar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- JS ilə doldurulacaq -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- COMPUTERS TAB -->
+        <div id="computers-tab" class="tab-content">
+            <div class="card">
+                <h3>Sistemdəki Kompüterlər</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Brend</th>
+                            <th>Model</th>
+                            <th>Qiymət</th>
+                        </tr>
+                    </thead>
+                    <tbody id="computers-table-body">
+                        <!-- JS ilə doldurulacaq -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ADMINS TAB -->
+        <div id="admins-tab" class="tab-content">
+            <div class="card">
+                <h3>Yeni Admin Təyin Et</h3>
+                <div class="promote-form">
+                    <input type="email" id="promote-email" placeholder="İstifadəçi emaili daxil edin...">
+                    <button class="btn" onclick="promoteUser()">Admin Et</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- EDIT USER MODAL -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h3>İstifadəçini Redaktə Et</h3>
+            <input type="hidden" id="edit-id">
+            <div class="form-group">
+                <label>Ad</label>
+                <input type="text" id="edit-name">
+            </div>
+            <div class="form-group">
+                <label>Soyad</label>
+                <input type="text" id="edit-surname">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="edit-email">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Ləğv et</button>
+                <button class="btn" onclick="saveUser()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

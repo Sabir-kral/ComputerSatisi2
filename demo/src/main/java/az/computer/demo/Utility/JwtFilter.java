@@ -28,9 +28,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // Şəkil yükləmə və auth yollarını filterdən tamamilə azad edirik
-
-// Şəkillərin birbaşa açılması üçün /uploads/ yolunu filtrdən keçirmə
         if (path.startsWith("/api/upload") || path.startsWith("/api/auth") || path.startsWith("/uploads/")) {
             filterChain.doFilter(request, response);
             return;
@@ -50,12 +47,17 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtil.validateToken(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (jwtUtil.validateToken(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (Exception e) {
+                logger.error("User authentication failed: " + e.getMessage());
+                // Bloklanmış/tapılmayan istifadəçi — auth təyin olunmur, sorğu 403 alacaq
             }
         }
 

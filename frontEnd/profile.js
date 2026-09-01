@@ -1,3 +1,5 @@
+const API_BASE = "http://95.111.230.66:8080/api";
+
 // Tokeni obyekt daxilindən təhlükəsiz və düzgün şəkildə dartırıq
 let token = localStorage.getItem('accessToken');
 if (!token) {
@@ -12,18 +14,17 @@ if (!token) {
     }
 }
 
-// Əgər hələ də token yoxdursa, login səhifəsinə atır
 if (!token) window.location.href = 'login.html';
 
-// Yeniləmə zamanı backend-ə ötürmək üçün istifadəçinin emailini burada saxlayacağıq
 let currentCustomerEmail = "";
+let currentEditingComputerId = null;
 
 document.addEventListener('DOMContentLoaded', loadProfile);
 
 // --- PROFİL MƏLUMATLARINI YÜKLƏ ---
 async function loadProfile() {
     try {
-        const response = await fetch('http://95.111.230.66:8080/api/customers/profile', {
+        const response = await fetch(`${API_BASE}/customers/profile`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -31,11 +32,9 @@ async function loadProfile() {
             document.getElementById('view-name').innerText = user.name;
             document.getElementById('view-surname').innerText = user.surname;
             document.getElementById('view-email').innerText = user.email;
-            
-            // Email-i qlobal dəyişənə mənimsədirik
+
             currentCustomerEmail = user.email;
 
-            // Update inputlarını doldururuq
             if(document.getElementById('up-name')) document.getElementById('up-name').value = user.name;
             if(document.getElementById('up-surname')) document.getElementById('up-surname').value = user.surname;
         } else {
@@ -80,7 +79,7 @@ window.processUpdate = async function() {
     }
 
     try {
-        const res = await fetch(`http://95.111.230.66:8080/api/customers/profile?email=${encodeURIComponent(currentCustomerEmail)}`, {
+        const res = await fetch(`${API_BASE}/customers/profile?email=${encodeURIComponent(currentCustomerEmail)}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -110,7 +109,7 @@ window.getSellingComputers = function() {
     
     container.innerHTML = "<p>Yüklənir...</p>";
 
-    fetch('http://95.111.230.66:8080/api/customers/selling', {
+    fetch(`${API_BASE}/customers/selling`, {
         headers: { 'Authorization': `Bearer ${token}` }
     })
     .then(res => res.json())
@@ -126,7 +125,10 @@ window.getSellingComputers = function() {
                     <h4 style="color:white; margin:0;">${pc.name}</h4>
                     <p style="color:#49fb35; margin:5px 0 0 0;">${pc.price} AZN</p>
                 </div>
-                <button onclick="deleteAd(${pc.id})" style="background:#da3633; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer;">Sil</button>
+                <div style="display:flex; gap:8px;">
+                    <button onclick='openEditModal(${pc.id}, ${JSON.stringify(pc.name)}, ${pc.price}, ${JSON.stringify(pc.description || "")})' style="background:#58a6ff; color:#000; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; font-weight:bold;">Redaktə</button>
+                    <button onclick="deleteAd(${pc.id})" style="background:#da3633; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer;">Sil</button>
+                </div>
             </div>
         `).join('');
     })
@@ -135,8 +137,58 @@ window.getSellingComputers = function() {
     });
 };
 
-// --- ALDIĞIM KOMPÜTERLƏR (SƏBƏT) ---
-window.getMyComputers = async function() {
+// --- KOMPÜTER REDAKTƏ MODALINI AÇ ---
+window.openEditModal = function(id, name, price, description) {
+    currentEditingComputerId = id;
+    document.getElementById('update-pc-name').value = name;
+    document.getElementById('update-pc-price').value = price;
+    document.getElementById('update-pc-desc').value = description;
+    document.getElementById('updateComputerModal').style.display = 'flex';
+};
+
+// --- MODALI BAĞLA ---
+window.closeUpdateModal = function() {
+    document.getElementById('updateComputerModal').style.display = 'none';
+    currentEditingComputerId = null;
+};
+
+// --- KOMPÜTER REDAKTƏSİNİ YADDA SAXLA ---
+window.submitUpdateComputer = async function() {
+    if (!currentEditingComputerId) return;
+
+    const name = document.getElementById('update-pc-name').value.trim();
+    const price = parseFloat(document.getElementById('update-pc-price').value);
+    const description = document.getElementById('update-pc-desc').value.trim();
+
+    if (!name || isNaN(price)) {
+        alert("Ad və Qiymət düzgün doldurulmalıdır!");
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/computers/${currentEditingComputerId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, price, description })
+        });
+
+        if (res.ok) {
+            alert("Kompüter uğurla yeniləndi!");
+            closeUpdateModal();
+            getSellingComputers();
+        } else {
+            alert("Yenilənmə zamanı xəta baş verdi (Status: " + res.status + ")");
+        }
+    } catch (err) {
+        alert("Şəbəkə xətası baş verdi.");
+    }
+};
+
+// --- SƏBƏTİ GƏTİR (BACKEND-DƏN) ---
+window.getMyCart = async function() {
     const container = document.getElementById("pc-list-content");
     const checkoutSummary = document.getElementById("checkout-summary");
     
@@ -148,30 +200,38 @@ window.getMyComputers = async function() {
     if(checkoutSummary) checkoutSummary.style.display = "none"; 
 
     try {
-        // DÜZƏLİŞ: /api/computers/bought yox, tam konfiqurasiya olunmuş /api/customers/v1 çağrılır
-        const res = await fetch('http://95.111.230.66:8080/api/customers/v1', { 
+        const res = await fetch(`${API_BASE}/cart/my-cart`, { 
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (res.ok) {
-            const boughtItems = await res.json();
+            const cartItems = await res.json();
             
-            if (!boughtItems || boughtItems.length === 0) {
-                container.innerHTML = "<p>Hələ ki real olaraq heç bir kompüter almamısınız.</p>";
+            if (!cartItems || cartItems.length === 0) {
+                container.innerHTML = "<p>Səbətiniz boşdur.</p>";
                 return;
             }
             
-            container.innerHTML = boughtItems.map(pc => `
-                <div style="background:#161b22; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; border-radius:8px; border-left: 4px solid #8957e5; align-items:center;">
-                    <span style="color:white; font-weight:bold;">${pc.name}</span>
-                    <b style="color:#49fb35;">${pc.price} AZN (Alındı)</b>
-                </div>
-            `).join('');
+            container.innerHTML = cartItems.map(item => {
+                const computer = item.computer || {};
+                const lineTotal = (Number(computer.price) || 0) * (item.quantity || 1);
+                return `
+                <div style="background:#161b22; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; border-radius:8px; border-left: 4px solid #8957e5;">
+                    <div>
+                        <span style="color:white; font-weight:bold;">${computer.name || 'Kompüter'}</span>
+                        <span style="color:#8b949e; margin-left:8px;">x${item.quantity || 1}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <b style="color:#49fb35;">${lineTotal} AZN</b>
+                        <button onclick="removeCartItem(${computer.id})" style="background:#da3633; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer;">Sil</button>
+                    </div>
+                </div>`;
+            }).join('');
 
-            // Qiymət cəmləmə bloku
             let totalPrice = 0;
-            boughtItems.forEach(item => {
-                totalPrice += Number(item.price) || 0;
+            cartItems.forEach(item => {
+                const computer = item.computer || {};
+                totalPrice += (Number(computer.price) || 0) * (item.quantity || 1);
             });
 
             const totalPriceDisplay = document.getElementById('total-price-display');
@@ -188,11 +248,29 @@ window.getMyComputers = async function() {
     }
 };
 
+// --- SƏBƏTDƏN MƏHSUL SİL ---
+window.removeCartItem = async function(computerId) {
+    if (!confirm("Bu məhsulu səbətdən silmək istədiyinizdən əminsiniz?")) return;
+    try {
+        const res = await fetch(`${API_BASE}/cart/remove?productId=${computerId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            getMyCart();
+        } else {
+            alert("Silinmə zamanı xəta oldu.");
+        }
+    } catch (err) {
+        alert("Şəbəkə xətası baş verdi.");
+    }
+};
+
 // --- ELAN SİLMƏK ---
 window.deleteAd = async function(id) {
     if (!confirm("Bu elanı silmək istədiyinizdən əminsiniz?")) return;
     try {
-        const res = await fetch(`http://95.111.230.66:8080/api/computers/${id}`, {
+        const res = await fetch(`${API_BASE}/computers/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -209,7 +287,7 @@ window.deleteAd = async function(id) {
 window.deleteAccount = async function() {
     if(!confirm("Hesabınızı silmək istədiyinizdən əminsiniz?")) return;
     try {
-        const res = await fetch('http://95.111.230.66:8080/api/customers/delete', {
+        const res = await fetch(`${API_BASE}/customers/delete`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });

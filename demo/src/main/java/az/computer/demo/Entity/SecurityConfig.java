@@ -1,4 +1,4 @@
-package az.computer.demo.Entity; // Paketi öz layihənə uyğun tənzimlə
+package az.computer.demo.Entity;
 
 import az.computer.demo.Service.CustomUserDetailsService;
 import az.computer.demo.Utility.JwtFilter;
@@ -49,22 +49,28 @@ public class SecurityConfig {
                         .requestMatchers("/api/upload/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/cart/**").authenticated()
 
-                        // Hər kəsə açıq Customer endpointləri
-                        .requestMatchers(HttpMethod.POST, "/api/customers").permitAll() // Register
-                        .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll() // Bütün PC-lər
+                        .requestMatchers(HttpMethod.POST, "/api/customers").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
 
-                        // Mütləq Giriş (Token) tələb edən Customer endpointləri
+                        // YALNIZ ADMIN kompüter əlavə/redaktə/silə bilər
+                        .requestMatchers(HttpMethod.POST, "/api/computers/add").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/computers/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/computers/**").hasAuthority("ROLE_ADMIN")
+
+                        // Admin panel
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+
                         .requestMatchers("/api/customers/profile").authenticated()
                         .requestMatchers("/api/customers/profile/**").authenticated()
-                        .requestMatchers("/api/customers/v1").authenticated() // Səbət / Alınanlar
-                        .requestMatchers("/api/customers/selling").authenticated() // Satdıqlarım
-                        .requestMatchers("/api/customers/buy").authenticated() // Satın alma (buy?id=)
+                        .requestMatchers("/api/customers/v1").authenticated()
+                        .requestMatchers("/api/customers/selling").authenticated()
+                        .requestMatchers("/api/customers/buy").authenticated()
                         .requestMatchers("/api/customers/delete").authenticated()
                         .requestMatchers("/api/customers/contact/**").authenticated()
                         .requestMatchers("/api/payments/**").authenticated()
+                        .requestMatchers("/api/cart/**").authenticated()
 
                         .anyRequest().authenticated()
                 );

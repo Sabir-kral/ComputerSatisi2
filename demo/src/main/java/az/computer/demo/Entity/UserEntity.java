@@ -28,6 +28,7 @@ public class UserEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<RoleEntity> roles;
+
     @OneToOne(mappedBy = "user",cascade = CascadeType.REMOVE)
     private CustomerEntity customer;
 
@@ -36,4 +37,5 @@ public class UserEntity {
 
     private Boolean isVerified;
 
+    private Boolean banned = false;
 }
