@@ -319,3 +319,18 @@ function hideAllSections() {
         if(el) el.style.display = 'none';
     });
 }
+
+// --- ADMIN OLUB-OLMADIĞINI YOXLA ---
+(async function checkAdminAccess() {
+    try {
+        const res = await fetch(`${API_BASE}/admin/check`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const btn = document.getElementById('admin-panel-btn');
+            if (btn) btn.style.display = 'inline-flex';
+        }
+    } catch (err) {
+        // admin deyil, sükutla keç
+    }
+})();

@@ -1,196 +1,350 @@
-const API_BASE = "http://localhost:8080/api/admin"; // Server ünvanına uyğun dəyişə bilərsən
+const API_BASE = "http://95.111.230.66:8080/api";
 
-// Token-i localStorage-dan götürürük (giriş edərkən saxlanılan token)
-function getAuthHeaders() {
-    const token = localStorage.getItem("token") || localStorage.getItem("jwt");
-    return {
-        "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${token}` : ""
-    };
+let token = localStorage.getItem('accessToken');
+if (!token) {
+    const activeUserStr = localStorage.getItem('activeUser');
+    if (activeUserStr) {
+        try {
+            const activeUser = JSON.parse(activeUserStr);
+            token = activeUser.accessToken;
+        } catch (e) {
+            console.error("Token oxunarkən xəta:", e);
+        }
+    }
 }
 
-// Səhifə açıldıqda yoxlama və məlumatların çəkilməsi
-document.addEventListener("DOMContentLoaded", async () => {
+if (!token) window.location.href = 'login.html';
+
+let currentUserId = null;
+let currentEditingComputerId = null;
+let allUsersCache = [];
+
+// --- GİRİŞDƏ ADMİN OLUB-OLMADIĞINI YOXLA ---
+(async function verifyAdmin() {
     try {
-        const res = await fetch(`${API_BASE}/check`, {
-            headers: getAuthHeaders()
+        const res = await fetch(`${API_BASE}/admin/check`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) {
-            alert("Bu səhifəyə giriş icazəniz yoxdur və ya admin deyilsiniz!");
-            window.location.href = "index.html";
+            alert("Bu səhifəyə giriş icazəniz yoxdur.");
+            window.location.href = 'index.html';
+        }
+    } catch (err) {
+        alert("Yoxlama zamanı xəta baş verdi.");
+        window.location.href = 'index.html';
+    }
+})();
+
+function hideAllViews() {
+    ['admin-home', 'user-list-view', 'user-detail-view', 'computer-list-view', 'add-admin-view'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+}
+
+window.backToHome = function() {
+    hideAllViews();
+    document.getElementById('admin-home').style.display = 'block';
+};
+
+window.backToUserList = function() {
+    showUserList();
+};
+
+// --- İSTİFADƏÇİ SİYAHISI ---
+window.showUserList = async function() {
+    hideAllViews();
+    document.getElementById('user-list-view').style.display = 'block';
+
+    const bannedContainer = document.getElementById('banned-users-list');
+    const allContainer = document.getElementById('all-users-list');
+    bannedContainer.innerHTML = "<p>Yüklənir...</p>";
+    allContainer.innerHTML = "";
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/users`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
+        const users = await res.json();
+        allUsersCache = users;
+
+        const banned = users.filter(u => u.banned);
+        const active = users.filter(u => !u.banned);
+
+        bannedContainer.innerHTML = banned.length === 0
+            ? "<p style='color:#8b949e;'>Bloklanmış istifadəçi yoxdur.</p>"
+            : banned.map(u => renderUserItem(u)).join('');
+
+        allContainer.innerHTML = active.length === 0
+            ? "<p style='color:#8b949e;'>İstifadəçi tapılmadı.</p>"
+            : active.map(u => renderUserItem(u)).join('');
+
+    } catch (err) {
+        bannedContainer.innerHTML = "<p>Xəta baş verdi.</p>";
+    }
+};
+
+function renderUserItem(u) {
+    return `
+        <div class="list-item ${u.banned ? 'banned' : ''}" onclick="openUserDetail(${u.id})">
+            <div>
+                <strong>${u.name} ${u.surname}</strong>
+                <div style="color:#8b949e; font-size:0.85rem;">${u.email}</div>
+            </div>
+            <span class="badge ${u.banned ? 'badge-banned' : 'badge-active'}">${u.banned ? 'Bloklanıb' : 'Aktiv'}</span>
+        </div>
+    `;
+}
+
+// --- İSTİFADƏÇİ DETALI ---
+window.openUserDetail = async function(id) {
+    currentUserId = id;
+    hideAllViews();
+    document.getElementById('user-detail-view').style.display = 'block';
+    document.getElementById('edit-user-form').style.display = 'none';
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/users/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
+        const user = await res.json();
+
+        document.getElementById('ud-id').innerText = user.id;
+        document.getElementById('ud-name').innerText = user.name;
+        document.getElementById('ud-surname').innerText = user.surname;
+        document.getElementById('ud-email').innerText = user.email;
+        document.getElementById('ud-status').innerText = user.banned ? 'Bloklanıb' : 'Aktiv';
+
+        const banBtn = document.getElementById('ban-toggle-btn');
+        if (user.banned) {
+            banBtn.innerText = 'Blokdan Çıxar';
+            banBtn.style.background = '#238636';
+        } else {
+            banBtn.innerText = 'Banla';
+            banBtn.style.background = '#da3633';
+        }
+
+        document.getElementById('edit-name').value = user.name;
+        document.getElementById('edit-surname').value = user.surname;
+        document.getElementById('edit-email').value = user.email;
+
+    } catch (err) {
+        alert("İstifadəçi məlumatı yüklənmədi.");
+    }
+};
+
+window.showEditUser = function() {
+    document.getElementById('edit-user-form').style.display = 'block';
+};
+
+window.saveUserEdit = async function() {
+    const name = document.getElementById('edit-name').value.trim();
+    const surname = document.getElementById('edit-surname').value.trim();
+    const email = document.getElementById('edit-email').value.trim();
+
+    if (!name || !surname || !email) {
+        alert("Bütün sahələr doldurulmalıdır!");
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/users/${currentUserId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, surname, email })
+        });
+
+        if (res.ok) {
+            alert("İstifadəçi yeniləndi!");
+            openUserDetail(currentUserId);
+        } else {
+            alert("Xəta baş verdi (Status: " + res.status + ")");
+        }
+    } catch (err) {
+        alert("Şəbəkə xətası baş verdi.");
+    }
+};
+
+window.toggleBan = async function() {
+    const banBtn = document.getElementById('ban-toggle-btn');
+    const isBanned = banBtn.innerText === 'Blokdan Çıxar';
+    const endpoint = isBanned ? 'unban' : 'ban';
+
+    if (!confirm(isBanned ? "Bu istifadəçinin blokunu qaldırmaq istəyirsiniz?" : "Bu istifadəçini bloklamaq istəyirsiniz?")) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/users/${currentUserId}/${endpoint}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            openUserDetail(currentUserId);
+        } else {
+            alert("Xəta baş verdi.");
+        }
+    } catch (err) {
+        alert("Şəbəkə xətası baş verdi.");
+    }
+};
+
+// --- KOMPÜTER SİYAHISI ---
+window.showComputerList = async function() {
+    hideAllViews();
+    document.getElementById('computer-list-view').style.display = 'block';
+
+    const container = document.getElementById('admin-computer-list');
+    container.innerHTML = "<p>Yüklənir...</p>";
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/computers`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
+        const computers = await res.json();
+
+        if (!computers || computers.length === 0) {
+            container.innerHTML = "<p style='color:#8b949e;'>Kompüter tapılmadı.</p>";
             return;
         }
-    } catch (e) {
-        alert("Serverə qoşulmaq mümkün olmadı.");
-        window.location.href = "index.html";
+
+        container.innerHTML = computers.map(pc => `
+            <div class="list-item" style="cursor:default;">
+                <div>
+                    <strong>${pc.name}</strong>
+                    <div style="color:#49fb35;">${pc.price} AZN</div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="action-btn" style="background:#58a6ff; color:#000;" onclick='openEditComputer(${pc.id}, ${JSON.stringify(pc.name)}, ${pc.price}, ${JSON.stringify(pc.description || "")})'>Redaktə</button>
+                    <button class="action-btn" style="background:#da3633; color:white;" onclick="deleteComputer(${pc.id})">Sil</button>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        container.innerHTML = "<p>Xəta baş verdi.</p>";
+    }
+};
+
+window.openEditComputer = function(id, name, price, description) {
+    currentEditingComputerId = id;
+    document.getElementById('update-pc-name').value = name;
+    document.getElementById('update-pc-price').value = price;
+    document.getElementById('update-pc-desc').value = description;
+    document.getElementById('updateComputerModal').style.display = 'flex';
+};
+
+window.submitUpdateComputer = async function() {
+    if (!currentEditingComputerId) return;
+
+    const name = document.getElementById('update-pc-name').value.trim();
+    const price = parseFloat(document.getElementById('update-pc-price').value);
+    const description = document.getElementById('update-pc-desc').value.trim();
+
+    if (!name || isNaN(price)) {
+        alert("Ad və Qiymət düzgün doldurulmalıdır!");
         return;
     }
 
-    loadUsers();
-    loadComputers();
-});
-
-// Tab dəyişmə funksiyası
-function switchTab(tabName) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-    if (tabName === 'users') {
-        document.querySelector('.tabs button:nth-child(1)').classList.add('active');
-        document.getElementById('users-tab').classList.add('active');
-        loadUsers();
-    } else if (tabName === 'computers') {
-        document.querySelector('.tabs button:nth-child(2)').classList.add('active');
-        document.getElementById('computers-tab').classList.add('active');
-        loadComputers();
-    } else if (tabName === 'admins') {
-        document.querySelector('.tabs button:nth-child(3)').classList.add('active');
-        document.getElementById('admins-tab').classList.add('active');
-    }
-}
-
-// İstifadəçiləri yüklə
-async function loadUsers() {
     try {
-        const res = await fetch(`${API_BASE}/users`, { headers: getAuthHeaders() });
+        const res = await fetch(`${API_BASE}/computers/${currentEditingComputerId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, price, description })
+        });
+
+        if (res.ok) {
+            alert("Kompüter yeniləndi!");
+            document.getElementById('updateComputerModal').style.display = 'none';
+            showComputerList();
+        } else {
+            alert("Xəta baş verdi (Status: " + res.status + ")");
+        }
+    } catch (err) {
+        alert("Şəbəkə xətası baş verdi.");
+    }
+};
+
+window.deleteComputer = async function(id) {
+    if (!confirm("Bu kompüteri silmək istədiyinizdən əminsiniz?")) return;
+    try {
+        const res = await fetch(`${API_BASE}/computers/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            showComputerList();
+        } else {
+            alert("Silinmə zamanı xəta oldu.");
+        }
+    } catch (err) {
+        alert("Şəbəkə xətası baş verdi.");
+    }
+};
+
+// --- ADMIN TƏYİN ET ---
+window.showAddAdmin = async function() {
+    hideAllViews();
+    document.getElementById('add-admin-view').style.display = 'block';
+
+    const select = document.getElementById('admin-user-select');
+    select.innerHTML = "<option value=''>-- Yüklənir... --</option>";
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/users`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
         const users = await res.json();
-        const tbody = document.getElementById('users-table-body');
-        tbody.innerHTML = '';
 
-        users.forEach(u => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${u.id}</td>
-                    <td>${u.name || ''}</td>
-                    <td>${u.surname || ''}</td>
-                    <td>${u.email}</td>
-                    <td><span class="badge ${u.banned ? 'banned' : 'active'}">${u.banned ? 'Bloklanıb' : 'Aktiv'}</span></td>
-                    <td>
-                        <div class="actions">
-                            <button class="action-btn btn-edit" onclick="openEditModal(${u.id}, '${u.name || ''}', '${u.surname || ''}', '${u.email}')">Redaktə</button>
-                            ${u.banned 
-                                ? `<button class="action-btn btn-unban" onclick="unbanUser(${u.id})">Bloku aç</button>`
-                                : `<button class="action-btn btn-ban" onclick="banUser(${u.id})">Blokla</button>`
-                            }
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-    } catch (e) {
-        console.error("İstifadəçiləri yükləmək mümkün olmadı", e);
+        select.innerHTML = "<option value=''>-- İstifadəçi seç --</option>" +
+            users.map(u => `<option value="${u.email}">${u.name} ${u.surname} (${u.email})</option>`).join('');
+
+    } catch (err) {
+        select.innerHTML = "<option value=''>Yüklənmədi</option>";
     }
-}
+};
 
-// Kompüterləri yüklə
-async function loadComputers() {
-    try {
-        const res = await fetch(`${API_BASE}/computers`, { headers: getAuthHeaders() });
-        const computers = await res.json();
-        const tbody = document.getElementById('computers-table-body');
-        tbody.innerHTML = '';
-
-        computers.forEach(c => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${c.id}</td>
-                    <td>${c.brand || c.name || '-'}</td>
-                    <td>${c.model || '-'}</td>
-                    <td>${c.price || 0} AZN</td>
-                </tr>
-            `;
-        });
-    } catch (e) {
-        console.error("Kompüterləri yükləmək mümkün olmadı", e);
-    }
-}
-
-// İstifadəçini blokla
-async function banUser(id) {
-    if (!confirm("Bu istifadəçini bloklamaq istədiyinizə əminsinizmi?")) return;
-    try {
-        const res = await fetch(`${API_BASE}/users/${id}/ban`, {
-            method: 'PUT',
-            headers: getAuthHeaders()
-        });
-        const data = await res.json();
-        alert(data.message);
-        loadUsers();
-    } catch (e) {
-        alert("Xəta baş verdi");
-    }
-}
-
-// Blokunu aç
-async function unbanUser(id) {
-    try {
-        const res = await fetch(`${API_BASE}/users/${id}/unban`, {
-            method: 'PUT',
-            headers: getAuthHeaders()
-        });
-        const data = await res.json();
-        alert(data.message);
-        loadUsers();
-    } catch (e) {
-        alert("Xəta baş verdi");
-    }
-}
-
-// Modal pəncərəni aç
-function openEditModal(id, name, surname, email) {
-    document.getElementById('edit-id').value = id;
-    document.getElementById('edit-name').value = name;
-    document.getElementById('edit-surname').value = surname;
-    document.getElementById('edit-email').value = email;
-    document.getElementById('edit-modal').classList.add('open');
-}
-
-// Modalı bağla
-function closeModal() {
-    document.getElementById('edit-modal').classList.remove('open');
-}
-
-// İstifadəçi məlumatlarını yenilə
-async function saveUser() {
-    const id = document.getElementById('edit-id').value;
-    const body = {
-        name: document.getElementById('edit-name').value,
-        surname: document.getElementById('edit-surname').value,
-        email: document.getElementById('edit-email').value
-    };
-
-    try {
-        const res = await fetch(`${API_BASE}/users/${id}`, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(body)
-        });
-        const data = await res.json();
-        alert(data.message);
-        closeModal();
-        loadUsers();
-    } catch (e) {
-        alert("Yenilənmə zamanı xəta baş verdi");
-    }
-}
-
-// İstifadəçini admin et
-async function promoteUser() {
-    const email = document.getElementById('promote-email').value;
+window.promoteSelected = async function() {
+    const email = document.getElementById('admin-user-select').value;
     if (!email) {
-        alert("Zəhmət olmasa email daxil edin");
+        alert("Zəhmət olmasa istifadəçi seçin!");
         return;
     }
+    await promoteEmail(email);
+};
 
+window.promoteCustomEmail = async function() {
+    const email = document.getElementById('admin-custom-email').value.trim();
+    if (!email) {
+        alert("Email yazın!");
+        return;
+    }
+    await promoteEmail(email);
+};
+
+async function promoteEmail(email) {
+    if (!confirm(`${email} email-ini admin etmək istədiyinizdən əminsiniz?`)) return;
     try {
-        const res = await fetch(`${API_BASE}/promote?email=${encodeURIComponent(email)}`, {
+        const res = await fetch(`${API_BASE}/admin/promote?email=${encodeURIComponent(email)}`, {
             method: 'POST',
-            headers: getAuthHeaders()
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        const data = await res.json();
-        alert(data.message);
-        document.getElementById('promote-email').value = '';
-    } catch (e) {
-        alert("Admin təyin edilərkən xəta baş verdi");
+        if (res.ok) {
+            alert("İstifadəçi admin edildi!");
+            document.getElementById('admin-custom-email').value = '';
+        } else {
+            alert("Xəta baş verdi (Status: " + res.status + ")");
+        }
+    } catch (err) {
+        alert("Şəbəkə xətası baş verdi.");
     }
 }
