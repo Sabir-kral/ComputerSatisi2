@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/upload/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/cart/**").authenticated()
 
                         // Hər kəsə açıq Customer endpointləri
                         .requestMatchers(HttpMethod.POST, "/api/customers").permitAll() // Register

@@ -74,7 +74,6 @@
 
         .left-side { flex: 1; text-align: center; }
         
-        /* Şəkil ölçüsü düzəlişi */
         .detail-img {
             width: 100%; 
             max-width: 450px; 
@@ -127,8 +126,25 @@
     <script>
         const API_BASE = "http://95.111.230.66:8080/api";
 
+        // Tokeni bütün fayllarda eyni məntiqlə oxuyuruq (accessToken və ya activeUser)
+        function getToken() {
+            let token = localStorage.getItem("accessToken") || localStorage.getItem("token");
+            if (!token) {
+                const activeUserStr = localStorage.getItem("activeUser");
+                if (activeUserStr) {
+                    try {
+                        const activeUser = JSON.parse(activeUserStr);
+                        token = activeUser.accessToken;
+                    } catch (e) {
+                        console.error("User token oxunarkən xəta:", e);
+                    }
+                }
+            }
+            return token;
+        }
+
         function checkAuth() {
-            const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+            const token = getToken();
             const email = localStorage.getItem("email") || localStorage.getItem("userEmail");
             if (token && email) {
                 document.getElementById("loginBtn").style.display = "none";
@@ -163,7 +179,7 @@
         async function openDetails(id) {
             const overlay = document.getElementById("detailOverlay");
             const content = document.getElementById("detailContent");
-            const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+            const token = getToken();
 
             overlay.classList.add("active");
             content.innerHTML = "<h1 style='color:white'>Yüklənir...</h1>";
@@ -187,7 +203,7 @@
                         <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:25px;">
                             <button class="back-btn" style="background:#30363d;" onclick="closeDetails()">← GERİ</button>
                             <button class="back-btn" style="background:var(--green); color:#000;" onclick="buyComputer(${pc.id}, '${pc.name}', ${pc.price})">İNDİ AL</button>
-                            <button class="back-btn" style="background:var(--yellow); color:#000;" onclick="addToCart({id: ${pc.id}, name: '${pc.name}', price: ${pc.price}, img: '${img}'})">🛒 SƏBƏTƏ AT</button>
+                            <button class="back-btn" style="background:var(--yellow); color:#000;" onclick="addToCart(${pc.id})">🛒 SƏBƏTƏ AT</button>
                         </div>
                     </div>
                 `;
@@ -198,24 +214,40 @@
             }
         }
 
-        function addToCart(product) {
-            let cart = JSON.parse(localStorage.getItem("userCart")) || [];
-            if (cart.some(item => item.id === product.id)) {
-                alert("Bu məhsul artıq səbətdədir!");
+        // DÜZƏLİŞ: artıq localStorage yox, birbaşa backend-ə (CartController) sorğu gedir
+        async function addToCart(productId) {
+            const token = getToken();
+            if (!token) {
+                alert("Səbətə əlavə etmək üçün giriş etməlisiniz!");
+                window.location.href = "login.html";
                 return;
             }
-            cart.push(product);
-            localStorage.setItem("userCart", JSON.stringify(cart));
-            alert("Məhsul səbətə əlavə edildi!");
+
+            try {
+                const res = await fetch(`${API_BASE}/cart/add/${productId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    alert("Məhsul səbətə əlavə edildi!");
+                } else {
+                    const errText = await res.text();
+                    alert("Xəta baş verdi: " + errText);
+                }
+            } catch (err) {
+                alert("Şəbəkə xətası baş verdi.");
+            }
         }
 
         function buyComputer(id, name, price) {
-            const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+            const token = getToken();
             if (!token) {
                 alert("Giriş etməlisiniz!");
                 window.location.href = "login.html";
                 return;
             }
+
             localStorage.setItem("selectedPc", JSON.stringify({ id, name, price }));
             window.location.href = "checkout.html";
         }

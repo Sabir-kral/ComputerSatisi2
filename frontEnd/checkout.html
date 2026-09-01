@@ -66,7 +66,7 @@
 
 <div class="checkout-card">
     <h2 style="text-align:center; color:#58a6ff;">🛒 Sifarişi Tamamla</h2>
-    <div id="product-list"></div>
+    <div id="product-list"><p>Yüklənir...</p></div>
     <p style="text-align:right;">Cəmi: <span id="final-price" style="color:#49fb35; font-weight:bold;">0</span> AZN</p>
 
     <input type="tel" id="phone" placeholder="Telefon nömrəniz">
@@ -75,7 +75,8 @@
 </div>
 
 <script>
-    // Access token-i obyekt daxilindən təhlükəsiz şəkildə dartırıq
+    const API_BASE = "http://95.111.230.66:8080/api";
+
     let token = localStorage.getItem('accessToken');
     if (!token) {
         const activeUserStr = localStorage.getItem('activeUser');
@@ -88,35 +89,67 @@
             }
         }
     }
-    
-    // Həm səbəti, həm də tək gələn "İndi Al" məhsulunu localStoragedən oxuyuruq
-    const cartItems = JSON.parse(localStorage.getItem("userCart")) || [];
-    const singleProduct = JSON.parse(localStorage.getItem("selectedPc"));
 
-    // Sifariş olunacaq əsas siyahı (Əgər singleProduct varsa tək odur, yoxdursa səbətdir)
-    let checkoutItems = [];
-    if (singleProduct) {
-        checkoutItems = [singleProduct]; // Tək məhsulu massivə salırıq ki, map funksiyası işləsin
-    } else {
-        checkoutItems = cartItems;
-    }
-
-    // Əgər token yoxdursa VƏ YA həm səbət, həm də tək məhsul boşdursa, index-ə qaytar
-    if (!token || checkoutItems.length === 0) {
+    if (!token) {
         location.href = 'index.html';
     }
 
-    const listContainer = document.getElementById('product-list');
+    // "İndi Al" ilə tək məhsul gəlibsə, onu prioritet veririk
+    const singleProduct = JSON.parse(localStorage.getItem("selectedPc") || "null");
+
+    let checkoutItems = [];   // ekranda göstərmək üçün {id, name, price}
+    let cartRawItems = [];    // backend-dən gələn xam cart item-lər (silmək üçün lazımdır)
     let totalAmount = 0;
 
-    // Siyahını ekrana çıxarırıq
-    listContainer.innerHTML = checkoutItems.map(pc => {
-        const price = parseFloat(pc.price) || 0;
-        totalAmount += price;
-        return `<div class="product-item"><span>${pc.name || 'Kompüter'}</span><b>${price} AZN</b></div>`;
-    }).join('');
+    const listContainer = document.getElementById('product-list');
 
-    document.getElementById('final-price').innerText = totalAmount.toFixed(2);
+    async function loadCheckoutItems() {
+        if (singleProduct) {
+            checkoutItems = [singleProduct];
+            renderItems();
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/cart/my-cart`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) throw new Error("Cart yüklənmədi");
+
+            cartRawItems = await res.json();
+
+            if (!cartRawItems || cartRawItems.length === 0) {
+                listContainer.innerHTML = "<p>Səbətiniz boşdur.</p>";
+                document.getElementById('confirm-btn').disabled = true;
+                return;
+            }
+
+            checkoutItems = cartRawItems.map(item => ({
+                id: item.computer.id,
+                name: item.computer.name,
+                price: (Number(item.computer.price) || 0) * (item.quantity || 1),
+                quantity: item.quantity
+            }));
+
+            renderItems();
+        } catch (err) {
+            console.error(err);
+            listContainer.innerHTML = "<p>Səbət yüklənərkən xəta baş verdi.</p>";
+        }
+    }
+
+    function renderItems() {
+        totalAmount = 0;
+        listContainer.innerHTML = checkoutItems.map(pc => {
+            const price = parseFloat(pc.price) || 0;
+            totalAmount += price;
+            const qtyLabel = pc.quantity && pc.quantity > 1 ? ` x${pc.quantity}` : '';
+            return `<div class="product-item"><span>${pc.name || 'Kompüter'}${qtyLabel}</span><b>${price} AZN</b></div>`;
+        }).join('');
+
+        document.getElementById('final-price').innerText = totalAmount.toFixed(2);
+    }
 
     async function confirmOrder() {
         const phone = document.getElementById('phone').value.trim();
@@ -133,8 +166,7 @@
         result.innerText = "";
 
         try {
-            // 1. Backend-ə checkout sorğusu göndəririk
-            const res = await fetch('http://95.111.230.66:8080/api/payments/checkout', {
+            const res = await fetch(`${API_BASE}/payments/checkout`, {
                 method: 'POST',
                 headers: { 
                     'Authorization': `Bearer ${token}`, 
@@ -148,10 +180,10 @@
             });
 
             if (res.ok) {
-                // 2. Sifariş olunan kompüterləri bazadan tək-tək silirik
+                // Kompüterləri bazadan silirik (elan kimi)
                 for (let pc of checkoutItems) {
                     try {
-                        await fetch(`http://95.111.230.66:8080/api/computers/${pc.id}`, {
+                        await fetch(`${API_BASE}/computers/${pc.id}`, {
                             method: 'DELETE',
                             headers: { 'Authorization': `Bearer ${token}` }
                         });
@@ -160,13 +192,20 @@
                     }
                 }
 
-                // 3. Uğurlu əməliyyatdan sonra yaddaşı təmizləyirik
                 if (singleProduct) {
-                    // Əgər "İndi Al" ilə gəlibsə, müvəqqəti məhsulu silirik
                     localStorage.removeItem("selectedPc");
                 } else {
-                    // Əgər səbətdən gəlibsə, səbəti sıfırlayırıq
-                    localStorage.setItem("userCart", JSON.stringify([]));
+                    // Backend-dəki cart-ı da təmizləyirik
+                    for (let item of cartRawItems) {
+                        try {
+                            await fetch(`${API_BASE}/cart/remove?productId=${item.computer.id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                        } catch (removeErr) {
+                            console.error(`Cart item ${item.computer.id} silinərkən xəta:`, removeErr);
+                        }
+                    }
                 }
 
                 result.innerHTML = "<span style='color:#49fb35; font-weight:bold;'>✅ Uğurlu oldu! Gmail-inizə baxın.</span>";
@@ -187,6 +226,8 @@
             btn.innerText = '✅ Təsdiqlə və Al';
         }
     }
+
+    loadCheckoutItems();
 </script>
 </body>
 </html>
