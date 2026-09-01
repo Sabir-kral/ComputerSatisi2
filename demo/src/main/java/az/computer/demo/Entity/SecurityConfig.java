@@ -61,6 +61,7 @@ public class SecurityConfig {
 
                         // Admin panel
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/admin/check").permitAll()
 
                         .requestMatchers("/api/customers/profile").authenticated()
                         .requestMatchers("/api/customers/profile/**").authenticated()
