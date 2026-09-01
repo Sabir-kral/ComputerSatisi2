@@ -41,7 +41,6 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Pre-flight (CORS OPTIONS) sorğularına icazə
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Açıq Endpoint-lər
@@ -52,33 +51,22 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // İctimai baxış və qeydiyyat Endpoint-ləri
+                        // İctimai baxış Endpoint-ləri
                         .requestMatchers(HttpMethod.POST, "/api/customers").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
                         .requestMatchers("/api/admin/check").permitAll()
 
-                        // ⚠️ YALNIZ KOMPÜTER SİLMƏ SORĞULARI HƏR KƏSƏ AÇILDI
+                        // Ödəniş VƏ Silmə əməliyyatları (403 xətasının qarşısını almaq üçün permitAll)
+                        .requestMatchers("/api/payments/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/computers/**").permitAll()
+                        .requestMatchers("/api/cart/**").permitAll()
 
-                        // YALNIZ ADMIN ƏMƏLİYYATLARI (Əlavə etmə, Yeniləmə və Admin paneli)
+                        // Admin əməliyyatları
                         .requestMatchers(HttpMethod.POST, "/api/computers/add").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/computers/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
 
-                        // MÜŞTƏRİ VƏ ADMİN üçün autentifikasiya tələb olunan endpoint-lər
-                        .requestMatchers("/api/customers/profile/**").authenticated()
-                        .requestMatchers("/api/customers/profile").authenticated()
-                        .requestMatchers("/api/customers/v1").authenticated()
-                        .requestMatchers("/api/customers/selling").authenticated()
-                        .requestMatchers("/api/customers/buy").authenticated()
-                        .requestMatchers("/api/customers/contact/**").authenticated()
-
-                        // Ödəniş və Səbət əməliyyatları
-                        .requestMatchers("/api/payments/**").authenticated()
-                        .requestMatchers("/api/cart/**").authenticated()
-
-                        // Qalan bütün sorğular təhlükəsizlik üçün autentifikasiya tələb edir
                         .anyRequest().authenticated()
                 );
 
