@@ -74,6 +74,6 @@ public class PaymentController {
             computerRepo.delete(computer);
         }
 
-        return ResponseEntity.ok("Sifariş tamamlandı. Məhsul bazadan (DB) tamamilə silindi.");
+        return ResponseEntity.ok("Sifariş tamamlandı.Zəhmət olmasa e-poçtunuzu yoxlayin");
     }
 }

@@ -69,7 +69,7 @@
     <div id="product-list"><p>Yüklənir...</p></div>
     <p style="text-align:right;">Cəmi: <span id="final-price" style="color:#49fb35; font-weight:bold;">0</span> AZN</p>
 
-    <input type="tel" id="phone" placeholder="Telefon nömrəniz">
+    <input type="tel" id="phone" placeholder="Telefon nömrəniz (məs: 0501234567)">
     <button class="btn-confirm" id="confirm-btn" onclick="confirmOrder()">✅ Təsdiqlə və Al</button>
     <div id="result-message" style="text-align:center; margin-top:15px;"></div>
 </div>
@@ -77,13 +77,13 @@
 <script>
     const API_BASE = "http://95.111.230.66:8080/api";
 
-    let token = localStorage.getItem('accessToken');
+    let token = localStorage.getItem('token') || localStorage.getItem('accessToken');
     if (!token) {
         const activeUserStr = localStorage.getItem('activeUser');
         if (activeUserStr) {
             try {
                 const activeUser = JSON.parse(activeUserStr);
-                token = activeUser.accessToken;
+                token = activeUser.accessToken || activeUser.token;
             } catch(e) {
                 console.error("User token oxunarkən xəta:", e);
             }
@@ -94,11 +94,11 @@
         location.href = 'index.html';
     }
 
-    // "İndi Al" ilə tək məhsul gəlibsə, onu prioritet veririk
+    // "İndi Al" ilə tək məhsul gəlibsə
     const singleProduct = JSON.parse(localStorage.getItem("selectedPc") || "null");
 
-    let checkoutItems = [];   // ekranda göstərmək üçün {id, name, price}
-    let cartRawItems = [];    // backend-dən gələn xam cart item-lər (silmək üçün lazımdır)
+    let checkoutItems = []; 
+    let cartRawItems = []; 
     let totalAmount = 0;
 
     const listContainer = document.getElementById('product-list');
@@ -157,7 +157,7 @@
         const btn = document.getElementById('confirm-btn');
 
         if (!phone) { 
-            alert("Nömrəni yazın!"); 
+            alert("Zəhmət olmasa telefon nömrənizi qeyd edin!"); 
             return; 
         }
 
@@ -166,6 +166,7 @@
         result.innerText = "";
 
         try {
+            // BACKEND CHECKOUT (Maillər gedir və DB-dən avtomatik silinir)
             const res = await fetch(`${API_BASE}/payments/checkout`, {
                 method: 'POST',
                 headers: { 
@@ -180,22 +181,11 @@
             });
 
             if (res.ok) {
-                // Kompüterləri bazadan silirik (elan kimi)
-                for (let pc of checkoutItems) {
-                    try {
-                        await fetch(`${API_BASE}/computers/${pc.id}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
-                    } catch (deleteErr) {
-                        console.error(`${pc.id} silinərkən xəta:`, deleteErr);
-                    }
-                }
-
+                // Təkli alınıbsa LocalStorage-dən silirik
                 if (singleProduct) {
                     localStorage.removeItem("selectedPc");
                 } else {
-                    // Backend-dəki cart-ı da təmizləyirik
+                    // Səbətdən alınıbsa Səbəti təmizləyirik
                     for (let item of cartRawItems) {
                         try {
                             await fetch(`${API_BASE}/cart/remove?productId=${item.computer.id}`, {
@@ -208,19 +198,22 @@
                     }
                 }
 
-                result.innerHTML = "<span style='color:#49fb35; font-weight:bold;'>✅ Uğurlu oldu! Gmail-inizə baxın.</span>";
+                result.innerHTML = "<span style='color:#49fb35; font-weight:bold;'>✅ Sifariş tamamlandı! E-poçt ünvanınızı yoxlayın.</span>";
                 
                 setTimeout(() => { 
                     location.href = 'index.html'; 
-                }, 3000);
+                }, 2500);
 
             } else {
+                const errText = await res.text();
+                console.error("Checkout xətası:", errText);
                 result.innerHTML = `<span style='color:#ff4a4a;'>Server xətası baş verdi!</span>`;
                 btn.disabled = false;
                 btn.innerText = '✅ Təsdiqlə və Al';
             }
 
         } catch (err) {
+            console.error("Network xətası:", err);
             result.innerHTML = "<span style='color:#ff4a4a;'>Şəbəkə xətası baş verdi!</span>";
             btn.disabled = false;
             btn.innerText = '✅ Təsdiqlə və Al';
