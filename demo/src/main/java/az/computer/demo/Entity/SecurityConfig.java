@@ -41,9 +41,10 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Pre-flight (CORS OPTIONS) sorğularına tam icazə
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Açıq Endpoint-lər
+                        // Açıq Endpoint-lər (Autentifikasiya tələb olunmur)
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/resendOTP").permitAll()
                         .requestMatchers("/api/users/verify").permitAll()
@@ -52,21 +53,31 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                         // İctimai baxış Endpoint-ləri
-                        .requestMatchers(HttpMethod.POST, "/api/customers").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/customers").permitAll() // Qeydiyyat
                         .requestMatchers(HttpMethod.GET, "/api/customers/v2").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/computers/**").permitAll()
                         .requestMatchers("/api/admin/check").permitAll()
 
-                        // Ödəniş VƏ Silmə əməliyyatları (403 xətasının qarşısını almaq üçün permitAll)
-                        .requestMatchers("/api/payments/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/computers/**").permitAll()
-                        .requestMatchers("/api/cart/**").permitAll()
-
-                        // Admin əməliyyatları
+                        // YALNIZ ADMIN üçün olan endpoint-lər
                         .requestMatchers(HttpMethod.POST, "/api/computers/add").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/computers/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/computers/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
 
+                        // MÜŞTƏRİ VƏ ADMİN üçün autentifikasiya tələb olunan endpoint-lər
+                        .requestMatchers("/api/customers/profile/**").authenticated()
+                        .requestMatchers("/api/customers/profile").authenticated()
+                        .requestMatchers("/api/customers/v1").authenticated()
+                        .requestMatchers("/api/customers/selling").authenticated()
+                        .requestMatchers("/api/customers/buy").authenticated()
+                        .requestMatchers("/api/customers/delete").authenticated()
+                        .requestMatchers("/api/customers/contact/**").authenticated()
+
+                        // Ödəniş və Səbət əməliyyatları (Mütləq autentifikasiya olunmalıdır)
+                        .requestMatchers("/api/payments/**").authenticated()
+                        .requestMatchers("/api/cart/**").authenticated()
+
+                        // Qalan bütün sorğular təhlükəsizlik üçün autentifikasiya tələb edir
                         .anyRequest().authenticated()
                 );
 
@@ -80,6 +91,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+        // Həm local, həm də server domenlərinə tam icazə
         configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
