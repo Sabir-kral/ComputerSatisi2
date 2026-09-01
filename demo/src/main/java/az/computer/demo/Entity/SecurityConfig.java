@@ -59,10 +59,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/check").permitAll()
 
                         // YALNIZ ADMIN üçün olan endpoint-lər
-                        .requestMatchers(HttpMethod.POST, "/api/computers/add").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/computers/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/computers/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN","ROLE_CUSTOMER")
-                        .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/computers/add").hasAnyAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/computers/**").hasAnyAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/computers/**").hasAnyAuthority("ROLE_ADMIN","ROLE_CUSTOMER")
+                        .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN")
 
                         // MÜŞTƏRİ VƏ ADMİN üçün autentifikasiya tələb olunan endpoint-lər
                         .requestMatchers("/api/customers/profile/**").authenticated()
