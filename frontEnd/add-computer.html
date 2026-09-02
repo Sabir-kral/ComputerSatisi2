@@ -82,7 +82,7 @@ async function handleImageSelect(event) {
             statusEl.innerText = `Yüklənir: ${file.name}...`;
             statusEl.style.color = "#58a6ff";
 
-            const response = await fetch('http://95.111.230.66:8080/api/upload/image', {
+            const response = await fetch('/api/upload/image', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
@@ -147,7 +147,7 @@ async function savePC() {
     }
 
     try {
-        const response = await fetch('http://95.111.230.66:8080/api/computers/add', {
+        const response = await fetch('/api/computers/add', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

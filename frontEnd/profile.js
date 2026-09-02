@@ -1,4 +1,4 @@
-const API_BASE = "http://95.111.230.66:8080/api";
+const API_BASE = "/api";
 
 // Tokeni obyekt daxilindən təhlükəsiz və düzgün şəkildə dartırıq
 let token = localStorage.getItem('accessToken');
