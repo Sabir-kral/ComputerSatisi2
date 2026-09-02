@@ -127,7 +127,11 @@
     <script>
         const API_BASE = "/api";
 
-        // Tokeni bütün fayllarda eyni məntiqlə oxuyuruq (accessToken və ya activeUser)
+        function cleanImageUrl(url) {
+            if (!url) return '';
+            return url.replace(/^https?:\/\/[^\/]+/, '');
+        }
+
         function getToken() {
             let token = localStorage.getItem("accessToken") || localStorage.getItem("token");
             if (!token) {
@@ -143,14 +147,16 @@
             }
             return token;
         }
-        fetch("http://localhost:8080/api/admin/check", {
-    headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
-}).then(res => {
-    if (res.ok) {
-        const link = document.getElementById("admin-panel-link");
-        if (link) link.style.display = "inline-block";
-    }
-});
+
+        // Düzəliş: localhost əvəzinə /api istifadə edilir
+        fetch(`${API_BASE}/admin/check`, {
+            headers: { "Authorization": "Bearer " + getToken() }
+        }).then(res => {
+            if (res.ok) {
+                const link = document.getElementById("admin-panel-link");
+                if (link) link.style.display = "inline-block";
+            }
+        });
 
         function checkAuth() {
             const token = getToken();
@@ -171,7 +177,8 @@
                 const computers = await response.json();
 
                 container.innerHTML = computers.map(pc => {
-                    const mainImage = pc.imageLinks?.[0] || 'https://via.placeholder.com/280x200?text=No+Image';
+                    const rawImage = pc.imageLinks?.[0];
+                    const mainImage = rawImage ? cleanImageUrl(rawImage) : 'https://via.placeholder.com/280x200?text=No+Image';
                     return `
                         <div class="pc-card" onclick="openDetails(${pc.id})">
                             <img src="${mainImage}" alt="${pc.name}" style="width:100%; height:180px; object-fit:cover; border-radius:10px; margin-bottom:15px;">
@@ -199,7 +206,8 @@
                 });
                 if (!res.ok) throw new Error();
                 const pc = await res.json();
-                const img = pc.imageLinks?.[0] || 'https://via.placeholder.com/450x300?text=No+Image';
+                const rawImg = pc.imageLinks?.[0];
+                const img = rawImg ? cleanImageUrl(rawImg) : 'https://via.placeholder.com/450x300?text=No+Image';
 
                 content.innerHTML = `
                     <div class="left-side">
@@ -223,7 +231,6 @@
             }
         }
 
-        // DÜZƏLİŞ: artıq localStorage yox, birbaşa backend-ə (CartController) sorğu gedir
         async function addToCart(productId) {
             const token = getToken();
             if (!token) {
