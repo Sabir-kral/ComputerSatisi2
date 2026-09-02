@@ -34,9 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = "verify.html";
                 } else {
                     // Xəta halında mesajı mətni kimi oxuyuruq
-                    const errorMsg = await response.text();
-                    console.error("Backend xətası:", response.status, errorMsg);
-                    alert("Xəta baş verdi: " + errorMsg);
+                alert("Belə bir istifadəçi artıq mövcuddur, zəhmət olmasa başqa e-poçt seçin.");
+
                 }
             } catch (err) {
                 // Əgər bura düşürsənsə, deməli ya kodda sintaksis səhvi var, ya da internet kəsilib
