@@ -107,7 +107,6 @@
         <div class="logo" onclick="location.reload()">TECH<span>STORE</span></div>
         <div class="nav-right">
             <a href="login.html" id="loginBtn" class="btn-login">Giriş</a>
-            <a href="admin.html" id="admin-panel-link" style="display: none;">Admin Panel</a>
             <div id="userSection" class="user-section" onclick="window.location.href='profile.html'">
                 <span id="userGmail" class="user-gmail"></span>
                 <div id="userAvatar" class="user-avatar"></div>
@@ -147,8 +146,6 @@
             }
             return token;
         }
-
-
 
         function checkAuth() {
             const token = getToken();
@@ -293,7 +290,10 @@
             };
         }
 
-        window.onload = () => { checkAuth(); loadComputers(); };
+        window.onload = () => { 
+            checkAuth(); 
+            loadComputers(); 
+        };
     </script>
 </body>
 </html>
