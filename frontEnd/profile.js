@@ -322,9 +322,7 @@ function hideAllSections() {
 
 // --- ADMIN OLUB-OLMADIĞINI YOXLA ---
 (async function checkAdminAccess() {
-    
     try {
-        const token = localStorage.getItem("accessToken")
         const res = await fetch(`${API_BASE}/admin/check`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -333,7 +331,7 @@ function hideAllSections() {
             if (btn) btn.style.display = 'inline-flex';
         }
     } catch (err) {
-
+        console.error("Admin check xətası:", err);
     }
 })();
 function admin(){
