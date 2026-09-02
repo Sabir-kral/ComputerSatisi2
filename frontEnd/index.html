@@ -148,15 +148,7 @@
             return token;
         }
 
-        // Düzəliş: localhost əvəzinə /api istifadə edilir
-        fetch(`${API_BASE}/admin/check`, {
-            headers: { "Authorization": "Bearer " + getToken() }
-        }).then(res => {
-            if (res.ok) {
-                const link = document.getElementById("admin-panel-link");
-                if (link) link.style.display = "inline-block";
-            }
-        });
+
 
         function checkAuth() {
             const token = getToken();
