@@ -29,7 +29,7 @@ public class PaymentController {
     @Transactional
     public ResponseEntity<?> checkout(@RequestBody OrderRequest request) throws MessagingException {
         String buyerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        String bankCardNumber = "4169 7388 XXXX XXXX";
+        String bankCardNumber = "4613 8602 0120 5026";
 
         for (Long cpId : request.getComputerIds()) {
             ComputerEntity computer = computerRepo.findById(cpId)
