@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
+    <link rel="icon" type="image/png" href="./Gemini_Generated_Image_vo6oi3vo6oi3vo6o.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TechStore</title>
@@ -232,7 +233,10 @@
             try {
                 const res = await fetch(`${API_BASE}/cart/add/${productId}`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
 
                 if (res.ok) {
@@ -242,6 +246,7 @@
                     alert("Xəta baş verdi: " + errText);
                 }
             } catch (err) {
+                console.error("Şəbəkə xətası:", err);
                 alert("Şəbəkə xətası baş verdi.");
             }
         }

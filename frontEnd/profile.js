@@ -1,16 +1,14 @@
 const API_BASE = "/api";
 
-// Tokeni obyekt daxilindən təhlükəsiz və düzgün şəkildə dartırıq
-let token = localStorage.getItem('accessToken');
+// Tokeni təhlükəsiz və düzgün şəkildə dartırıq
+let token = localStorage.getItem('accessToken') || localStorage.getItem('token');
 if (!token) {
     const activeUserStr = localStorage.getItem('activeUser');
     if (activeUserStr) {
         try {
             const activeUser = JSON.parse(activeUserStr);
             token = activeUser.accessToken;
-        } catch(e) {
-            console.error("User token oxunarkən xəta:", e);
-        }
+        } catch(e) { console.error("Token oxunarkən xəta:", e); }
     }
 }
 
@@ -21,7 +19,7 @@ let currentEditingComputerId = null;
 
 document.addEventListener('DOMContentLoaded', loadProfile);
 
-// --- PROFİL MƏLUMATLARINI YÜKLƏ ---
+// --- PROFİLİ YÜKLƏ ---
 async function loadProfile() {
     try {
         const response = await fetch(`${API_BASE}/customers/profile`, {
@@ -37,46 +35,18 @@ async function loadProfile() {
 
             if(document.getElementById('up-name')) document.getElementById('up-name').value = user.name;
             if(document.getElementById('up-surname')) document.getElementById('up-surname').value = user.surname;
-        } else {
-            logout();
         }
-    } catch (err) { 
-        console.error("Profil yüklənərkən xəta baş verdi:", err); 
-    }
+    } catch (err) { console.error("Profil yüklənmə xətası:", err); }
 }
 
-// --- HTML-dəki "Məlumatları Yenilə" düyməsinin çağırdığı funksiya ---
-window.showUpdate = function() {
-    hideAllSections();
-    const updateForm = document.getElementById("update-form");
-    if(updateForm) updateForm.style.display = "block";
-};
-
-// --- REDAKTƏ EDİB YADDA SAXLA ---
+// --- REDAKTƏ ET (PUT /api/customers/profile) ---
 window.processUpdate = async function() {
     const name = document.getElementById('up-name').value;
     const surname = document.getElementById('up-surname').value;
     const password = document.getElementById('up-pass').value;
 
-    if(!name || !surname) {
-        alert("Ad və Soyad boş qala bilməz!");
-        return;
-    }
-
-    if(!currentCustomerEmail) {
-        alert("İstifadəçi emaili tapılmadı, zəhmət olmasa səhifəni yeniləyin.");
-        return;
-    }
-
-    const updateData = { 
-        name: name, 
-        surname: surname,
-        email: currentCustomerEmail 
-    };
-    
-    if(password) {
-        updateData.password = password; 
-    }
+    const updateData = { name, surname, email: currentCustomerEmail };
+    if(password) updateData.password = password;
 
     try {
         const res = await fetch(`${API_BASE}/customers/profile?email=${encodeURIComponent(currentCustomerEmail)}`, {
@@ -90,23 +60,53 @@ window.processUpdate = async function() {
 
         if(res.ok) {
             alert("Məlumatlarınız uğurla yeniləndi!");
-            location.reload(); 
+            location.reload();
         } else {
-            alert("Yenilənmə zamanı xəta baş verdi (Status: " + res.status + ")");
+            alert("Yenilənmə zamanı xəta: " + res.status);
         }
-    } catch(err) {
-        alert("Şəbəkə xətası baş verdi.");
-    }
+    } catch(err) { alert("Şəbəkə xətası."); }
 };
 
-// --- SATDIĞIM KOMPÜTERLƏRİ GƏTİR ---
+// --- ALDIĞIM KOMPÜTERLƏR (GET /api/customers/v1) ---
+window.getMyComputers = async function() {
+    const container = document.getElementById("pc-list-content");
+    const checkoutSummary = document.getElementById("checkout-summary");
+    
+    hideAllSections();
+    const myCcArea = document.getElementById("my-computers-area");
+    if(myCcArea) myCcArea.style.display = "block";
+    
+    container.innerHTML = "<p>Yüklənir...</p>";
+    if(checkoutSummary) checkoutSummary.style.display = "none";
+
+    try {
+        const res = await fetch(`${API_BASE}/customers/v1`, { 
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const boughtItems = await res.json();
+            if (!boughtItems || boughtItems.length === 0) {
+                container.innerHTML = "<p>Hələ ki heç bir kompüter almamısınız.</p>";
+                return;
+            }
+            container.innerHTML = boughtItems.map(pc => `
+                <div style="background:#161b22; padding:15px; margin-bottom:10px; border-radius:8px; border-left:4px solid #8957e5; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:white; font-weight:bold;">${pc.name}</span>
+                    <b style="color:#49fb35;">${pc.price} AZN</b>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = "<p>Məlumat gəlmədi (Status: " + res.status + ")</p>";
+        }
+    } catch (err) { container.innerHTML = "<p>Şəbəkə xətası.</p>"; }
+};
+
+// --- SATDIĞIM KOMPÜTERLƏR (GET /api/customers/selling) ---
 window.getSellingComputers = function() {
     const container = document.getElementById("pc-list-content-selling");
     hideAllSections();
-    
-    const areaSelling = document.getElementById("my-computers-area-selling");
-    if(areaSelling) areaSelling.style.display = "block";
-    
+    document.getElementById("my-computers-area-selling").style.display = "block";
     container.innerHTML = "<p>Yüklənir...</p>";
 
     fetch(`${API_BASE}/customers/selling`, {
@@ -132,8 +132,8 @@ window.getSellingComputers = function() {
             </div>
         `).join('');
     })
-    .catch(err => { 
-        container.innerHTML = "<p>Məlumat gəlmədi (403 və ya Şəbəkə xətası).</p>"; 
+    .catch(err => {
+        container.innerHTML = "<p>Şəbəkə xətası baş verdi.</p>";
     });
 };
 
@@ -285,36 +285,26 @@ window.deleteAd = async function(id) {
 
 // --- HESABI SİLMƏK ---
 window.deleteAccount = async function() {
-    if(!confirm("Hesabınızı silmək istədiyinizdən əminsiniz?")) return;
+    if(!confirm("Hesabınızı silmək istəyirsiniz?")) return;
     try {
         const res = await fetch(`${API_BASE}/customers/delete`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if(res.ok) {
-            alert("Hesabınız silindi.");
-            window.logout();
-        } else {
-            alert("Silinmə zamanı xəta oldu.");
+        if(res.ok) { 
+            localStorage.clear();
+            window.location.href = 'login.html'; 
         }
     } catch(err) { alert("Xəta baş verdi."); }
 };
 
-// --- NAVİQASİYA VƏ ÇIXIŞ ---
-window.addComputer = () => window.location.href = 'add-computer.html';
-window.goToCheckout = () => window.location.href = 'checkout.html';
-window.logout = () => { 
-    localStorage.removeItem('accessToken'); 
-    localStorage.removeItem('selectedPc'); 
-    window.location.href = 'index.html'; 
-};
-
-window.goBack = function() {
-    window.location.href = 'index.html';
+window.logout = function() {
+    localStorage.clear();
+    window.location.href = 'login.html';
 };
 
 function hideAllSections() {
-    ['update-form', 'my-computers-area', 'my-computers-area-selling', 'selling-area'].forEach(id => {
+    ['update-form', 'my-computers-area', 'my-computers-area-selling'].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = 'none';
     });
@@ -334,6 +324,7 @@ function hideAllSections() {
         console.error("Admin check xətası:", err);
     }
 })();
+
 function admin(){
-    window.location.href="admin.html"
+    window.location.href = "admin.html";
 }
