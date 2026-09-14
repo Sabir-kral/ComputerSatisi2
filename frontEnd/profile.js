@@ -310,7 +310,7 @@ function hideAllSections() {
     });
 }
 
-// --- ADMIN OLUB-OLMADIĞINI YOXLA ---
+// --- ADMIN OLUB-OLMADIĞINI YOXLA (Yalnız Profil üçün) ---
 (async function checkAdminAccess() {
     try {
         const res = await fetch(`${API_BASE}/admin/check`, {
